@@ -1,0 +1,28 @@
+# Environments
+.env
+.env.local
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+env/
+venv/
+.venv/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+.eslintcache
+.stylelintcache
+
+# OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Docker
+.docker/
