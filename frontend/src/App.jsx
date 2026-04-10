@@ -11,6 +11,8 @@ import Workspace from './components/Workspace';
 import WhatsAppIntegration from './components/WhatsAppIntegration';
 import { WorkspaceProvider } from './context/WorkspaceContext';
 import { UIProvider } from './context/UIContext';
+import TermsOfUse from './pages/TermsOfUse';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 const ALLOWED_DOMAIN = 'mendoncagalvao.com.br';
 
@@ -73,25 +75,32 @@ function AppContent() {
     );
   }
 
-  if (!session) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
   return (
-    <div className="min-h-screen bg-obsidian-deep text-text-primary">
+    <div className="min-h-screen bg-obsidian-deep text-text-primary uppercase-none font-sans">
       <WorkspaceProvider>
         <UIProvider>
           <Routes>
-            <Route path="/app" element={<Layout onLogout={handleLogout} session={session} />}>
-              <Route index element={<Navigate to="/app/chat" replace />} />
-              <Route path="chat" element={<ChatContainer />} />
-              <Route path="workspace" element={<Workspace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="team" element={<TeamManagement />} />
-              <Route path="knowledge" element={<KnowledgeAdmin />} />
-              <Route path="whatsapp" element={<WhatsAppIntegration />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/app/chat" replace />} />
+            {/* Public Routes */}
+            <Route path="/termos" element={<TermsOfUse />} />
+            <Route path="/privacidade" element={<PrivacyPolicy />} />
+
+            {/* Auth Gating */}
+            {!session ? (
+              <Route path="*" element={<LoginPage onLogin={handleLogin} />} />
+            ) : (
+              <>
+                <Route path="/app" element={<Layout onLogout={handleLogout} session={session} />}>
+                  <Route index element={<Navigate to="/app/chat" replace />} />
+                  <Route path="chat" element={<ChatContainer />} />
+                  <Route path="workspace" element={<Workspace />} />
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="team" element={<TeamManagement />} />
+                  <Route path="knowledge" element={<KnowledgeAdmin />} />
+                  <Route path="whatsapp" element={<WhatsAppIntegration />} />
+                </Route>
+                <Route path="*" element={<Navigate to="/app/chat" replace />} />
+              </>
+            )}
           </Routes>
         </UIProvider>
       </WorkspaceProvider>

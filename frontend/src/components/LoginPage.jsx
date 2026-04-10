@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase';
+import { Link } from 'react-router-dom';
 
 // ─── Google Icon (official SVG paths) ───────────────────────────────────────
 const GoogleIcon = () => (
@@ -218,9 +219,9 @@ eSocial Module     READY`}
       {/* ── Footer ─────────────────────────────────────────────────── */}
       <div className={`fixed bottom-4 left-0 right-0 z-10 text-center transition-all duration-1000 delay-300 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
         <div className="font-mono text-[10px] text-slate-600 flex items-center justify-center gap-3">
-          <span>Termos de Uso</span>
+          <Link to="/termos" className="hover:text-slate-400 transition-colors cursor-pointer">Termos de Uso</Link>
           <span className="text-slate-700">|</span>
-          <span>Privacidade</span>
+          <Link to="/privacidade" className="hover:text-slate-400 transition-colors cursor-pointer">Privacidade</Link>
           <span className="text-slate-700">|</span>
           <span>v3.1 Enterprise</span>
         </div>
