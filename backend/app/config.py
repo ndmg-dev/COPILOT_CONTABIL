@@ -5,7 +5,7 @@ Centralizes all environment variables with validation via pydantic-settings.
 import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, field_validator
 
 
 class Settings(BaseSettings):
@@ -37,10 +37,19 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"]
 
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: str | list[str]) -> list[str]:
+        """Handles both JSON lists and comma-separated strings for CORS."""
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",") if i.strip()]
+        return v
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
         populate_by_name = True
+        case_sensitive = False
 
 
 @lru_cache()
