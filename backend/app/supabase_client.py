@@ -12,7 +12,7 @@ def get_admin_client() -> Client:
     This client bypasses RLS — use only for admin operations in the backend.
     """
     settings = get_settings()
-    return create_client(settings.supabase_url, settings.supabase_key)
+    return create_client(settings.supabase_url, settings.supabase_service_key)
 
 
 def get_user_client(access_token: str) -> Client:

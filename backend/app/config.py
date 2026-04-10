@@ -14,7 +14,8 @@ class Settings(BaseSettings):
 
     # Supabase
     supabase_url: str = Field(..., alias="SUPABASE_URL")
-    supabase_key: str = Field(..., alias="SUPABASE_KEY")  # service_role key (backend only)
+    supabase_key: str = Field(..., alias="SUPABASE_KEY")  # anon key
+    supabase_service_key: str = Field(..., alias="SUPABASE_SERVICE_ROLE_KEY")  # service_role key (admin)
 
     # OpenAI / LLM
     openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
