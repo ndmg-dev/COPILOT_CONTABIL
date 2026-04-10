@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { supabase } from '../utils/supabase';
-import FeedbackModal from './FeedbackModal';
 import ConfirmModal from './ConfirmModal';
+import MessageActions from './MessageActions';
+import { useUI } from '../context/UIContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -320,32 +321,17 @@ const ChatContainer = () => {
   const [loading, setLoading] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
-  const [emailModal, setEmailModal] = useState({ open: false, subject: '', body: '' });
-  const [exportModal, setExportModal] = useState({ open: false, content: '', query: '' });
-  const [exportOpts, setExportOpts] = useState({ title: 'Parecer Técnico', includeLogo: true, isolateLegal: true });
-  const [exporting, setExporting] = useState(false);
+  
+  const { showFeedback } = useUI();
+  
   const [aiTone, setAiTone] = useState('Formal');
   const [aiDetail, setAiDetail] = useState('Padrão');
-  const [orgLogo, setOrgLogo] = useState(null);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [attachedFile, setAttachedFile] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  useEffect(() => { loadConversations(); loadOrgLogo(); }, []);
+  useEffect(() => { loadConversations(); }, []);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
-
-  const loadOrgLogo = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      const { data: profile } = await supabase.from('profiles').select('organization_id').eq('id', session.user.id).single();
-      if (profile?.organization_id) {
-        const { data: org } = await supabase.from('organizations').select('logo_url').eq('id', profile.organization_id).single();
-        if (org?.logo_url) setOrgLogo(org.logo_url);
-      }
-    } catch { /* silent */ }
-  };
 
   const getAuthHeaders = async (includeContentType = true) => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -363,12 +349,7 @@ const ChatContainer = () => {
     } catch { /* silent */ }
   };
 
-  const [feedback, setFeedback] = useState({ isOpen: false, status: '', title: '', message: '' });
   const [confirmObj, setConfirmObj] = useState({ isOpen: false, convId: null, event: null });
-
-  const showFeedback = (status, title, message) => {
-    setFeedback({ isOpen: true, status, title, message });
-  };
 
   const loadMessages = async (convId) => {
     setActiveConversation(convId);
@@ -459,34 +440,6 @@ const ChatContainer = () => {
     } finally { setLoading(false); }
   };
 
-  const handleLogoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploadingLogo(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const { data: profile } = await supabase.from('profiles').select('organization_id').eq('id', session.user.id).single();
-      if (!profile?.organization_id) throw new Error('Organização não encontrada');
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${profile.organization_id}_logo_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage.from('office_logos').upload(fileName, file);
-      if (uploadError) throw uploadError;
-
-      const { data: publicUrlData } = supabase.storage.from('office_logos').getPublicUrl(fileName);
-      const logoUrl = publicUrlData.publicUrl;
-
-      await supabase.from('organizations').update({ logo_url: logoUrl }).eq('id', profile.organization_id);
-      setOrgLogo(logoUrl);
-      showFeedback('success', 'Logo Atualizada', 'A identidade visual foi definida com sucesso.');
-    } catch (err) {
-      showFeedback('error', 'Falha no Upload', 'Erro ao fazer upload da logo: ' + err.message);
-    } finally {
-      setUploadingLogo(false);
-    }
-  };
-
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file && file.type === 'application/pdf') {
@@ -495,50 +448,6 @@ const ChatContainer = () => {
       showFeedback('error', 'Arquivo Inválido', 'Apenas arquivos PDF são aceitos. Evite anexar imagens ou planilhas diretamente.');
     }
     if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const openExportModal = (content, query) => {
-    setExportOpts({ title: 'Parecer Técnico', includeLogo: true, isolateLegal: true });
-    setExportModal({ open: true, content, query: query || '' });
-  };
-
-  const handleGeneratePDF = async () => {
-    setExporting(true);
-    try {
-      const headers = await getAuthHeaders(false);
-      const res = await fetch(`${API_URL}/api/export/pdf`, {
-        method: 'POST',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: exportModal.content,
-          query: exportModal.query,
-          title: exportOpts.title,
-          include_logo: exportOpts.includeLogo,
-          isolate_legal: exportOpts.isolateLegal,
-        }),
-      });
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `parecer_${new Date().toISOString().slice(0, 10)}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setExportModal({ ...exportModal, open: false });
-        showFeedback('success', 'PDF Gerado', 'Seu arquivo PDF foi baixado.');
-      } else {
-        showFeedback('error', 'Falha de Servidor', 'Erro ao processar PDF.');
-      }
-    } catch { showFeedback('error', 'Sem Conexão', 'Falha na rede ao gerar PDF.'); }
-    finally { setExporting(false); }
-  };
-
-  const handleRedigirEmail = (content) => {
-    const subject = "Consultoria Contábil — Mendonça Galvão";
-    const body = `Prezado cliente,\n\nConforme solicitado, seguem as orientações técnicas:\n\n${content}\n\nAtenciosamente,\nMendonça Galvão Contadores`;
-    setEmailModal({ open: true, subject, body });
   };
 
   return (
@@ -648,19 +557,12 @@ const ChatContainer = () => {
                 </div>
                 <FormattedMessage content={msg.content} />
                 {msg.role === 'assistant' && (
-                  <div className="mt-4 pt-3 border-t border-slate-800/40 flex gap-2">
-                    <button onClick={() => {
-                        const prevUserMsg = messages.slice(0, i).reverse().find(m => m.role === 'user');
-                        openExportModal(msg.content, prevUserMsg?.content);
-                      }}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/40 border border-slate-700/50 text-[10px] text-slate-400 hover:text-[#2DD4BF] hover:border-[#2DD4BF]/30 transition-all">
-                      <IconFilePDF /> Gerar PDF
-                    </button>
-                    <button onClick={() => handleRedigirEmail(msg.content)}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/40 border border-slate-700/50 text-[10px] text-slate-400 hover:text-[#818CF8] hover:border-[#818CF8]/30 transition-all">
-                      <IconMail /> E-mail
-                    </button>
-                  </div>
+                  <MessageActions
+                    content={msg.content}
+                    query={messages.slice(0, i).reverse().find(x => x.role === 'user')?.content || ''}
+                    onFeedback={showFeedback}
+                    variant="chat"
+                  />
                 )}
               </div>
             </div>
@@ -734,151 +636,6 @@ const ChatContainer = () => {
         </div>
       </div>
 
-      {/* ── PDF Export Modal ──────────────────────────────────────────── */}
-      {exportModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl border border-slate-800/50 overflow-hidden" style={{ background: '#0F172A' }}>
-            <div className="px-5 py-4 border-b border-slate-800/40 flex items-center justify-between bg-slate-900/40">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-200">Exportar Parecer Técnico</h3>
-                <p className="text-[10px] text-slate-500 font-mono mt-0.5">PDF corporativo white-label</p>
-              </div>
-              <button onClick={() => setExportModal({ ...exportModal, open: false })} className="text-slate-500 hover:text-slate-300">
-                <IconClose />
-              </button>
-            </div>
-            <div className="p-5 space-y-4">
-              {/* Title Input */}
-              <div>
-                <label className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block mb-1.5">Título do Parecer</label>
-                <input
-                  type="text"
-                  value={exportOpts.title}
-                  onChange={e => setExportOpts({ ...exportOpts, title: e.target.value })}
-                  placeholder="Ex: Parecer Técnico: Retenção de ISS"
-                  className="w-full px-3 py-2.5 bg-slate-800/40 border border-slate-700/50 rounded-lg text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#2DD4BF]/40 transition-colors"
-                />
-              </div>
-
-              {/* Checkboxes */}
-              <div className="space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={exportOpts.includeLogo}
-                    onChange={e => setExportOpts({ ...exportOpts, includeLogo: e.target.checked })}
-                    className="sr-only peer"
-                  />
-                  <div className="w-4 h-4 rounded border border-slate-700 bg-slate-800/50 flex items-center justify-center peer-checked:bg-[#2DD4BF]/20 peer-checked:border-[#2DD4BF]/40 transition-all">
-                    {exportOpts.includeLogo && (
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    )}
-                  </div>
-                  <span className="text-xs text-slate-300 group-hover:text-slate-100 transition-colors">Incluir logo do escritório no cabeçalho</span>
-                </label>
-                
-                {/* Logo Upload UX */}
-                {exportOpts.includeLogo && (
-                  <div className="ml-7 p-3 bg-slate-900/40 border border-slate-800/60 rounded-lg flex items-center gap-3">
-                    {orgLogo ? (
-                      <>
-                        <img src={orgLogo} alt="Logo do Escritório" className="h-8 max-w-[100px] object-contain rounded" />
-                        <label className="cursor-pointer text-[10px] text-slate-400 hover:text-[#2DD4BF] underline transition-colors ml-auto">
-                          Trocar Logo
-                          <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
-                        </label>
-                      </>
-                    ) : (
-                      <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-400 hover:text-[#2DD4BF] transition-colors w-full">
-                        <IconUpload /> {uploadingLogo ? 'Enviando...' : 'Fazer upload da marca (PNG/JPG)'}
-                        <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" disabled={uploadingLogo} />
-                      </label>
-                    )}
-                  </div>
-                )}
-
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={exportOpts.isolateLegal}
-                    onChange={e => setExportOpts({ ...exportOpts, isolateLegal: e.target.checked })}
-                    className="sr-only peer"
-                  />
-                  <div className="w-4 h-4 rounded border border-slate-700 bg-slate-800/50 flex items-center justify-center peer-checked:bg-[#818CF8]/20 peer-checked:border-[#818CF8]/40 transition-all">
-                    {exportOpts.isolateLegal && (
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#818CF8" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    )}
-                  </div>
-                  <span className="text-xs text-slate-300 group-hover:text-slate-100 transition-colors">Isolar fundamentação legal em seção dedicada</span>
-                </label>
-              </div>
-
-              {/* Preview Info */}
-              {exportModal.query && (
-                <div className="px-3 py-2 bg-slate-800/30 border border-slate-700/30 rounded-lg">
-                  <p className="text-[9px] font-mono text-slate-500 uppercase mb-1">Consulta incluída</p>
-                  <p className="text-[11px] text-slate-400 truncate">{exportModal.query}</p>
-                </div>
-              )}
-
-              {/* Generate Button */}
-              <button
-                onClick={handleGeneratePDF}
-                disabled={exporting}
-                className="w-full py-2.5 rounded-lg bg-[#2DD4BF] text-[#0F172A] text-xs font-bold hover:bg-[#26b8a5] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-              >
-                {exporting ? (
-                  <><svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Gerando documento...</>
-                ) : (
-                  <><IconFilePDF /> Gerar Documento</>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Email Draft Modal ─────────────────────────────────────────── */}
-      {emailModal.open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="glass-panel w-full max-w-2xl animate-in zoom-in duration-200">
-            <div className="px-5 py-4 border-b border-slate-800/60 flex items-center justify-between bg-slate-900/40">
-              <h3 className="text-sm font-semibold text-slate-200">Rascunho de E-mail</h3>
-              <button onClick={() => setEmailModal({ ...emailModal, open: false })} className="text-slate-500 hover:text-slate-200">
-                <IconClose />
-              </button>
-            </div>
-            <div className="p-5 space-y-4">
-              <div>
-                <label className="text-[10px] font-mono text-slate-500 uppercase block mb-1">Assunto</label>
-                <div className="px-3 py-2 bg-slate-800/30 border border-slate-700/50 rounded text-slate-300 text-sm">
-                  {emailModal.subject}
-                </div>
-              </div>
-              <div>
-                <label className="text-[10px] font-mono text-slate-500 uppercase block mb-1">Corpo</label>
-                <textarea readOnly className="w-full h-64 px-4 py-3 bg-slate-800/30 border border-slate-700/50 rounded text-slate-300 text-xs leading-relaxed font-sans focus:outline-none" value={emailModal.body} />
-              </div>
-              <div className="flex justify-end">
-                <button onClick={() => { navigator.clipboard.writeText(emailModal.body); showFeedback('success', 'Email Copiado', 'Texto copiado para a área de transferência.'); }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-md bg-[#818CF8] text-white text-xs font-semibold hover:bg-[#717cf0] transition-colors">
-                  <IconCopy /> Copiar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Global Feedback Modal ──────────────────────────────────────── */}
-      <FeedbackModal 
-        isOpen={feedback.isOpen} 
-        onClose={() => setFeedback({ ...feedback, isOpen: false })}
-        status={feedback.status}
-        title={feedback.title}
-        message={feedback.message}
-      />
-
       <ConfirmModal
         isOpen={confirmObj.isOpen}
         onClose={() => setConfirmObj({ isOpen: false, convId: null, event: null })}
@@ -887,7 +644,6 @@ const ChatContainer = () => {
         message="Deseja excluir esta conversa? O histórico e as respostas mapeadas da base legal serão irrecuperáveis."
         confirmText="Excluir Conversa"
       />
-
     </div>
   );
 };

@@ -58,6 +58,7 @@ def create_app() -> FastAPI:
     from app.api.team import router as team_router
     from app.api.knowledge import router as knowledge_router
     from app.api.whatsapp import router as whatsapp_router
+    from app.api.whatsapp_manager import router as wa_manager_router
     from app.api.workspace import router as workspace_router
 
     app.include_router(chat_router)
@@ -67,6 +68,7 @@ def create_app() -> FastAPI:
     app.include_router(team_router)
     app.include_router(knowledge_router)
     app.include_router(whatsapp_router)
+    app.include_router(wa_manager_router)
     app.include_router(workspace_router, prefix="/api/workspace", tags=["Workspace"])
 
     # ── Health Check ─────────────────────────────────────────────────────

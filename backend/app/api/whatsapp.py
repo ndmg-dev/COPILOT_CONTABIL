@@ -3,6 +3,8 @@ Copilot Contábil IA — WhatsApp Omnichannel Router
 Handles incoming webhooks from WhatsApp (Official Cloud API or custom providers).
 Integrates with the same RAG/LLM backend as the web chat.
 """
+import os
+import httpx
 import logging
 from typing import Optional
 from fastapi import APIRouter, Request, HTTPException, Query, status
@@ -101,8 +103,7 @@ async def handle_whatsapp_message(request: Request):
             ]).execute()
 
         # 6. Send response back to WhatsApp
-        # This would call the WhatsApp Send API
-        # await send_whatsapp_response(from_phone, ai_response["response"])
+        await send_whatsapp_response(from_phone, ai_response["response"])
         
         logger.info(f"AI response generated for {from_phone}: {ai_response['response'][:50]}...")
 
@@ -117,8 +118,36 @@ async def handle_whatsapp_message(request: Request):
         return {"status": "error", "detail": str(e)}
 
 async def send_whatsapp_response(to_phone: str, text: str):
-    """
-    Placeholder para envio de mensagem via API do WhatsApp.
-    Implementar integração com Meta Graph API ou Evolution API.
-    """
-    pass
+    """Envia a resposta da IA via Evolution API."""
+    evo_url = os.getenv("EVOLUTION_API_URL")
+    evo_key = os.getenv("EVOLUTION_API_KEY")
+    instance = os.getenv("EVOLUTION_INSTANCE_NAME")
+    
+    if not evo_url or not evo_key or not instance:
+        logger.error("Credenciais da Evolution API ausentes.")
+        return False
+
+    url = f"{evo_url.rstrip('/')}/message/sendText/{instance}"
+    headers = {"apikey": evo_key, "Content-Type": "application/json"}
+    
+    payload = {
+        "number": to_phone,
+        "text": text,
+        "options": {
+            "delay": 1500,
+            "presence": "composing",
+            "linkPreview": True
+        }
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(url, headers=headers, json=payload)
+            if response.status_code not in (200, 201):
+                logger.error(f"Erro na Evolution API (Status {response.status_code}): {response.text}")
+                return False
+            logger.info(f"Mensagem entregue via Evolution para {to_phone}")
+            return True
+    except Exception as e:
+        logger.error(f"Falha de conexão com a Evolution API: {str(e)}")
+        return False

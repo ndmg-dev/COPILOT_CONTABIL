@@ -23,6 +23,12 @@ class Settings(BaseSettings):
     # Brevo Mail Integration
     brevo_api_key: str = Field(default="", alias="BREVO_API_KEY")
 
+    # Evolution API (WhatsApp)
+    evolution_api_url: str = Field(default="", alias="EVOLUTION_API_URL")
+    evolution_api_key: str = Field(default="", alias="EVOLUTION_API_KEY")
+    evolution_instance_name: str = Field(default="", alias="EVOLUTION_INSTANCE_NAME")
+    backend_public_url: str = Field(default="http://localhost:8000", alias="BACKEND_PUBLIC_URL")
+
     # Application
     debug: bool = Field(default=False, alias="DEBUG")
     app_name: str = "Copilot Contábil IA"

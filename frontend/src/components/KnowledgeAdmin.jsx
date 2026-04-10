@@ -39,6 +39,7 @@ const KnowledgeAdmin = () => {
   const [stats, setStats] = useState({ total_documents: 0, total_chunks: 0 });
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [authorized, setAuthorized] = useState(null); // null = checking, true/false
   const fileInputRef = useRef(null);
 
   const [feedback, setFeedback] = useState({ isOpen: false, status: '', title: '', message: '' });
@@ -48,7 +49,19 @@ const KnowledgeAdmin = () => {
     setFeedback({ isOpen: true, status, title, message });
   };
 
-  useEffect(() => { loadKnowledge(); }, []);
+  // Role gate: only admin/socio can access
+  useEffect(() => {
+    const checkRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) { setAuthorized(false); return; }
+      const { data } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+      const role = data?.role;
+      setAuthorized(role === 'admin' || role === 'socio');
+    };
+    checkRole();
+  }, []);
+
+  useEffect(() => { if (authorized) loadKnowledge(); }, [authorized]);
 
   const getAuthHeaders = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -122,6 +135,31 @@ const KnowledgeAdmin = () => {
       showFeedback('error', 'Falha na Remoção', `Erro ao deletar: ${err.message}`);
     }
   };
+
+  // Access guard screens
+  if (authorized === null) {
+    return (
+      <div className="h-full flex items-center justify-center" style={{ background: '#0B1120' }}>
+        <div className="w-8 h-8 rounded-full border-2 border-slate-700 border-t-[#818CF8] animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!authorized) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center gap-4" style={{ background: '#0B1120' }}>
+        <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-red-400">
+            <circle cx="12" cy="12" r="10"/><line x1="4.93" x2="19.07" y1="4.93" y2="19.07"/>
+          </svg>
+        </div>
+        <h2 className="text-lg font-bold text-slate-200">Acesso Restrito</h2>
+        <p className="text-xs text-slate-500 text-center max-w-xs">
+          Esta área é restrita a usuários com perfil de <strong className="text-slate-300">Administrador</strong>. Contate o gestor da sua organização.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 h-full overflow-y-auto" style={{ background: '#0B1120' }}>

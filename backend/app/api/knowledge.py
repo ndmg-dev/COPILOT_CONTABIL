@@ -86,7 +86,7 @@ async def ingest_document(
 
         # 3. Split into chunks
         from langchain_core.documents import Document
-        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        from langchain_text_splitters import RecursiveCharacterTextSplitter
 
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
