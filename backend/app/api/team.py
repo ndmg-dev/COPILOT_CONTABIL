@@ -206,7 +206,7 @@ async def invite_member(
                 Você foi convidado(a) por <strong>{current_user.full_name}</strong> para ingressar na plataforma na organização <strong>{org_name}</strong>.
             </p>
             <div style="margin-top: 35px; text-align: center;">
-                <a href="http://localhost:5173/login" style="background-color: #2DD4BF; color: #07352d; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 14px;">
+                <a href="https://copilot.mendoncagalvao.com.br" style="background-color: #2DD4BF; color: #07352d; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 14px;">
                     Acessar Plataforma
                 </a>
             </div>
