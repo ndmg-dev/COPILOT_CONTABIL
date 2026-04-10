@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
 
     # CORS
-    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"]
+    cors_origins: any = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"]
 
     @field_validator("cors_origins", mode="before")
     @classmethod
