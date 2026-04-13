@@ -185,7 +185,7 @@ const Workspace = () => {
                 </div>
                 
                 <div className="mt-auto">
-                    <SocialExporter extractedData={documents.map(d => d.content).join(' || ')} />
+                    <SocialExporter extractedData={messages.filter(m => m.role === 'assistant' && !m.loading).pop()?.content || ''} />
                 </div>
             </div>
 

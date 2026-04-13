@@ -82,13 +82,13 @@ export default function SocialExporter({ extractedData }) {
 
                         <div className="relative z-10 w-full flex flex-col items-center">
                             <h2 className="text-4xl font-mono text-slate-400 mb-8 tracking-widest uppercase">Análise Contábil Semanal</h2>
-                            <h1 className="text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-400 leading-tight mb-16 break-words max-w-4xl">
+                            <h1 className="text-7xl font-bold text-pink-400 drop-shadow-lg leading-tight mb-16 break-words max-w-4xl">
                                 Insights Fiscais Direto da Fonte
                             </h1>
                             
-                            <div className="bg-slate-800/80 backdrop-blur-md p-10 rounded-3xl border border-slate-700/50 w-full max-w-3xl">
-                                <p className="text-4xl text-slate-200 leading-relaxed font-light text-left">
-                                    "{extractedData ? extractedData.substring(0, 200) + '...' : 'Seus dados estruturados aparecerão magicamente aqui, criando um conteúdo engajador e fácil de ler.'}"
+                            <div className="bg-slate-800 p-10 rounded-3xl border border-slate-700/50 w-full max-w-3xl shadow-xl">
+                                <p className="text-4xl text-slate-200 leading-relaxed font-light text-left overflow-hidden">
+                                    "{extractedData ? extractedData.replace(/[*#_`~|-]+/g, ' ').replace(/<[^>]+>/g, '').substring(0, 250) + '...' : 'As conclusões da análise da Inteligência Artificial aparecerão aqui de forma clara e visual para seus clientes.'}"
                                 </p>
                             </div>
                         </div>

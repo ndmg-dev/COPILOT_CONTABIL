@@ -1,7 +1,7 @@
 -- Create table for tracking taxes and deadlines
 CREATE TABLE IF NOT EXISTS public.taxes_due (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID NOT KEY REFERENCES public.organizations(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
     client_name TEXT NOT NULL,
     tax_name TEXT NOT NULL,
     due_date DATE NOT NULL,
