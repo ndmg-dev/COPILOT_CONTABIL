@@ -24,68 +24,79 @@ class WorkspaceChatRequest(BaseModel):
 
 @router.post("/upload")
 async def upload_workspace_document(
-    file: UploadFile = File(...),
+    files: list[UploadFile] = File(...),
     current_user: UserProfile = Depends(get_current_user)
 ):
     """
-    Receives a document, extracts text using Pandas/PyPDF/Docx, and saves securely.
+    Receives documents, extracts text using Pandas/PyPDF/Docx/Vision, and saves securely.
     """
     if not current_user.organization_id:
         raise HTTPException(status_code=400, detail="Organização não configurada.")
 
-    content_bytes = await file.read()
-    ext = file.filename.split(".")[-1].lower() if "." in file.filename else ""
-    
-    extracted_text = ""
+    results = []
+    supabase = get_admin_singleton()
 
-    try:
-        if ext == "pdf":
-            reader = PdfReader(io.BytesIO(content_bytes))
-            texts = [page.extract_text() for page in reader.pages if page.extract_text()]
-            extracted_text = "\n".join(texts)
-            
-        elif ext in ["csv"]:
-            df = pd.read_csv(io.BytesIO(content_bytes))
-            extracted_text = df.to_markdown(index=False)
-            
-        elif ext in ["xlsx", "xls"]:
-            df = pd.read_excel(io.BytesIO(content_bytes))
-            extracted_text = df.to_markdown(index=False)
-            
-        elif ext in ["docx"]:
-            doc = Document(io.BytesIO(content_bytes))
-            extracted_text = "\n".join([para.text for para in doc.paragraphs])
-            
-        else:
-            raise HTTPException(status_code=400, detail="Formato não suportado para análise profunda.")
-            
-        # Ensure we don't blow up the payload with absurdly huge strings (approx 200k chars limit logic)
-        MAX_CHARS = 200000
-        if len(extracted_text) > MAX_CHARS:
-            extracted_text = extracted_text[:MAX_CHARS] + "\n... [CORTE: DOCUMENTO MUITO GRANDE PARA APRESENTAÇÃO INTEGRAL]"
+    for idx, file in enumerate(files):
+        content_bytes = await file.read()
+        ext = file.filename.split(".")[-1].lower() if "." in file.filename else ""
+        extracted_text = ""
 
-    except Exception as e:
-        logger.error(f"Erro ao processar {file.filename}: {e}")
-        raise HTTPException(status_code=500, detail=f"Erro de processamento: {e}")
+        try:
+            if ext == "pdf":
+                reader = PdfReader(io.BytesIO(content_bytes))
+                texts = [page.extract_text() for page in reader.pages if page.extract_text()]
+                extracted_text = "\n".join(texts)
+                
+            elif ext in ["csv"]:
+                df = pd.read_csv(io.BytesIO(content_bytes))
+                extracted_text = df.to_markdown(index=False)
+                
+            elif ext in ["xlsx", "xls"]:
+                df = pd.read_excel(io.BytesIO(content_bytes))
+                extracted_text = df.to_markdown(index=False)
+                
+            elif ext in ["docx"]:
+                doc = Document(io.BytesIO(content_bytes))
+                extracted_text = "\n".join([para.text for para in doc.paragraphs])
+            
+            elif ext in ["jpg", "jpeg", "png"]:
+                from app.services.vision_service import extract_data_via_vision
+                import base64
+                base64_img = base64.b64encode(content_bytes).decode("utf-8")
+                extracted_text = await extract_data_via_vision(base64_img, ext)
+                
+            else:
+                extracted_text = "[Formato não suportado: conteúdo omitido]"
+                
+            MAX_CHARS = 200000
+            if len(extracted_text) > MAX_CHARS:
+                extracted_text = extracted_text[:MAX_CHARS] + "\n... [CORTE: DOCUMENTO MUITO GRANDE PARA APRESENTAÇÃO INTEGRAL]"
+            
+            # Wrap in tag to clearly isolate cross-doc data
+            final_text = f"<doc_{idx+1}>\n{extracted_text}\n</doc_{idx+1}>"
 
-    try:
-        supabase = get_admin_singleton()
-        file_id = str(uuid.uuid4())
-        file_path = f"{current_user.organization_id}/{file_id}_{file.filename}"
-        
-        supabase.storage.from_("client_documents").upload(
-            file_path,
-            content_bytes,
-            {"content-type": file.content_type}
-        )
-    except Exception as e:
-        logger.error(f"Erro ao salvar arquivo temporário no bucket: {e}")
+        except Exception as e:
+            logger.error(f"Erro ao processar {file.filename}: {e}")
+            final_text = f"<doc_{idx+1}>\nErro de processamento: {str(e)}\n</doc_{idx+1}>"
 
-    return {
-        "status": "ok",
-        "file_name": file.filename,
-        "extracted_content": extracted_text
-    }
+        try:
+            file_id = str(uuid.uuid4())
+            file_path = f"{current_user.organization_id}/{file_id}_{file.filename}"
+            supabase.storage.from_("client_documents").upload(
+                file_path,
+                content_bytes,
+                {"content-type": file.content_type}
+            )
+        except Exception as e:
+            logger.warning(f"Erro ao salvar arquivo temporário no bucket: {e}")
+
+        results.append({
+            "id": file_id,
+            "file_name": file.filename,
+            "extracted_content": final_text
+        })
+
+    return {"status": "ok", "documents": results}
 
 
 @router.post("/chat")

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MessageActions from './MessageActions';
+import SocialExporter from './SocialExporter';
 import { useUI } from '../context/UIContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -55,30 +56,31 @@ const Workspace = () => {
         
         showFeedback('loading', 'Processando Documentos', 'Extraindo texto via OCR e Engine LLM...');
         try {
+            const formData = new FormData();
             for (const file of files) {
-                const formData = new FormData();
-                formData.append('file', file);
-                
-                const res = await fetch(`${API_URL}/api/workspace/upload`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    body: formData
-                });
-                
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || 'Erro ao processar');
-                
-                setDocuments(prev => [...prev, {
-                    id: Math.random().toString(36).substr(2, 9),
-                    name: file.name,
-                    content: data.extracted_content
-                }]);
+                formData.append('files', file); // 'files' is the key expected by the FastAPI backend
             }
-            showFeedback('success', 'Upload Concluído', 'Arquivos lidos com sucesso. O contexto agora está isolado.');
+            
+            const res = await fetch(`${API_URL}/api/workspace/upload`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+            
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || 'Erro ao processar');
+            
+            const newDocs = (data.documents || []).map((doc) => ({
+                id: doc.id,
+                name: doc.file_name,
+                content: doc.extracted_content
+            }));
+
+            setDocuments(prev => [...prev, ...newDocs]);
+            showFeedback('success', 'Upload Concluído', 'Arquivos lidos com sucesso. O contexto agora está isolado e pronto para análise.');
         } catch (e) {
             showFeedback('error', 'Erro no Leitor', e.message);
         }
-        setTimeout(() => setFeedback(f => ({...f, isOpen: false})), 2000);
     };
 
     const handleDragOver = (e) => { e.preventDefault(); setIsDragOver(true); };
@@ -161,8 +163,8 @@ const Workspace = () => {
                 >
                     <IconUpload />
                     <p className="text-sm text-slate-300 font-medium">Solte os arquivos aqui</p>
-                    <p className="text-[10px] text-slate-500 font-mono">PDF, DOCX, XLSX, CSV</p>
-                    <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".pdf,.csv,.xlsx,.xls,.docx"/>
+                    <p className="text-[10px] text-slate-500 font-mono">PDF, DOCX, XLSX, CSV, JPG, PNG</p>
+                    <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} accept=".pdf,.csv,.xlsx,.xls,.docx,.jpg,.jpeg,.png"/>
                 </div>
 
                 <div className="flex-1 overflow-y-auto space-y-2">
@@ -180,6 +182,10 @@ const Workspace = () => {
                             Nenhum arquivo local instanciado.
                         </div>
                     )}
+                </div>
+                
+                <div className="mt-auto">
+                    <SocialExporter extractedData={documents.map(d => d.content).join(' || ')} />
                 </div>
             </div>
 

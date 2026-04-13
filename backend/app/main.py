@@ -25,7 +25,15 @@ async def lifespan(app: FastAPI):
     logger.info(f"📡 Supabase URL: {settings.supabase_url[:40]}...")
     logger.info(f"🤖 LLM Model: {settings.llm_model}")
     logger.info(f"🔧 Debug: {settings.debug}")
+    
+    # Initialize and start CRON jobs
+    from app.scheduler import start_scheduler, shutdown_scheduler
+    start_scheduler()
+    
     yield
+    
+    # Shutdown CRON jobs
+    shutdown_scheduler()
     logger.info("👋 Application shutting down...")
 
 

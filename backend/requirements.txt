@@ -19,3 +19,4 @@ openpyxl
 python-docx
 tabulate
 langchain-text-splitters
+apscheduler

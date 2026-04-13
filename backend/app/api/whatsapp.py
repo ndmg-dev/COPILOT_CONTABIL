@@ -55,10 +55,29 @@ async def handle_whatsapp_message(request: Request):
 
         message = messages[0]
         from_phone = message.get("from")
-        message_body = message.get("text", {}).get("body", "")
+        
+        # Determine Message Type
+        message_type = message.get("type", "text")
+        message_body = ""
+        is_audio = False
+        
+        if message_type == "text":
+            message_body = message.get("text", {}).get("body", "")
+        elif message_type == "audio" or "audioMessage" in message:
+            is_audio = True
+            # The base64 key could be inside message or message.audioMessage
+            base64_audio = message.get("base64") or message.get("audioMessage", {}).get("base64")
+            
+            if base64_audio:
+                from app.services.audio_service import process_audio_base64_to_text
+                logger.info("Processing incoming audio message...")
+                message_body = await process_audio_base64_to_text(base64_audio)
+            else:
+                logger.warning("Audio message received without base64 blob")
+                return {"status": "skipped_no_audio_blob"}
         
         if not message_body:
-            return {"status": "skipped_non_text"}
+            return {"status": "skipped_empty_or_unsupported"}
 
         # 2. Identify Organization via User Profiles
         supabase = get_admin_singleton()
@@ -103,7 +122,16 @@ async def handle_whatsapp_message(request: Request):
             ]).execute()
 
         # 6. Send response back to WhatsApp
-        await send_whatsapp_response(from_phone, ai_response["response"])
+        if is_audio:
+            from app.services.audio_service import generate_text_to_speech_base64
+            logger.info("Generating TTS audio response...")
+            audio_response_b64 = await generate_text_to_speech_base64(ai_response["response"])
+            if audio_response_b64:
+                await send_whatsapp_audio(from_phone, audio_response_b64)
+            else:
+                await send_whatsapp_response(from_phone, ai_response["response"])
+        else:
+            await send_whatsapp_response(from_phone, ai_response["response"])
         
         logger.info(f"AI response generated for {from_phone}: {ai_response['response'][:50]}...")
 
@@ -150,4 +178,37 @@ async def send_whatsapp_response(to_phone: str, text: str):
             return True
     except Exception as e:
         logger.error(f"Falha de conexão com a Evolution API: {str(e)}")
+        return False
+
+async def send_whatsapp_audio(to_phone: str, base64_audio: str):
+    """Envia uma resposta de áudio (M4A/MP3 PTT) via Evolution API."""
+    evo_url = os.getenv("EVOLUTION_API_URL")
+    evo_key = os.getenv("EVOLUTION_API_KEY")
+    instance = os.getenv("EVOLUTION_INSTANCE_NAME")
+    
+    if not evo_url or not evo_key or not instance:
+        return False
+
+    url = f"{evo_url.rstrip('/')}/message/sendWhatsAppAudio/{instance}"
+    headers = {"apikey": evo_key, "Content-Type": "application/json"}
+    
+    payload = {
+        "number": to_phone,
+        "audio": f"data:audio/mp3;base64,{base64_audio}",
+        "options": {
+            "delay": 2000,
+            "presence": "recording"
+        }
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.post(url, headers=headers, json=payload)
+            if response.status_code not in (200, 201):
+                logger.error(f"Erro ao enviar áudio na Evolution: {response.text}")
+                return False
+            logger.info(f"Áudio PTT entregue para {to_phone}")
+            return True
+    except Exception as e:
+        logger.error(f"Falha ao enviar áudio: {str(e)}")
         return False
