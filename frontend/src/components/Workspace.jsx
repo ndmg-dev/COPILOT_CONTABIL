@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MessageActions from './MessageActions';
-import SocialExporter from './SocialExporter';
 import { useUI } from '../context/UIContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -182,10 +181,6 @@ const Workspace = () => {
                             Nenhum arquivo local instanciado.
                         </div>
                     )}
-                </div>
-                
-                <div className="mt-auto">
-                    <SocialExporter extractedData={messages.filter(m => m.role === 'assistant' && !m.loading).pop()?.content || ''} />
                 </div>
             </div>
 
