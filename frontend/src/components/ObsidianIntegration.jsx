@@ -338,10 +338,11 @@ const ObsidianIntegration = () => {
               </>
             ) : (
               <div>
-                <label className="text-[11px] text-slate-500 mb-1 block">Caminho absoluto do vault</label>
+                <label className="text-[11px] text-slate-500 mb-1 block">Caminho do vault (dentro do servidor/container)</label>
                 <input value={vaultPath} onChange={e => setVaultPath(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-slate-900/80 border border-slate-700/50 text-sm text-slate-200 font-mono focus:border-[#818CF8]/40 focus:ring-1 focus:ring-[#818CF8]/20 outline-none transition-all"
-                  placeholder="C:\Users\Contador\ObsidianVault" />
+                  placeholder="/data/obsidian-vault" />
+                <p className="text-[10px] text-slate-600 mt-1 font-mono">Docker: o vault local é montado em /data/obsidian-vault via docker-compose</p>
               </div>
             )}
 

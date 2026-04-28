@@ -10,6 +10,9 @@ services:
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - CORS_ORIGINS=${CORS_ORIGINS}
+      - OBSIDIAN_VAULT_PATH=/data/obsidian-vault
+    volumes:
+      - "${OBSIDIAN_VAULT_PATH:-C:/Users/User/Documents/Obsidian Vault}:/data/obsidian-vault:ro"
     networks:
       - app-network
 
