@@ -67,11 +67,20 @@ const mainNavigation = [
   { to: '/app/dashboard', label: 'Dashboard', icon: IconChart },
 ];
 
+const IconObsidianNav = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3l1 19"/><path d="m2 9 10 4 10-4"/>
+    <path d="m6 3 6 6 6-6"/>
+  </svg>
+);
+
 // Admin explicit items
 const adminNavigation = [
   { to: '/app/team', label: 'Equipe', icon: IconUsers },
   { to: '/app/knowledge', label: 'Base Legal', icon: IconBook },
   { to: '/app/whatsapp', label: 'WhatsApp', icon: IconWhatsApp },
+  { to: '/app/obsidian', label: 'Obsidian Vault', icon: IconObsidianNav },
 ];
 
 const Layout = ({ onLogout, session }) => {

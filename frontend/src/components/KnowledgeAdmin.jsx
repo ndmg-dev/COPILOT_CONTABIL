@@ -3,6 +3,9 @@ import { supabase } from '../utils/supabase';
 import FeedbackModal from './FeedbackModal';
 import ConfirmModal from './ConfirmModal';
 
+const ACCEPTED_FORMATS = '.pdf,.docx,.txt,.md';
+const VALID_EXTENSIONS = ['pdf', 'docx', 'txt', 'md'];
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // ─── SVG Icons ──────────────────────────────────────────────────────────────
@@ -87,8 +90,10 @@ const KnowledgeAdmin = () => {
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
-    if (!file || !file.type.includes('pdf')) {
-      showFeedback('error', 'Arquivo Inválido', 'Apenas arquivos PDF são permitidos.');
+    if (!file) return;
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!VALID_EXTENSIONS.includes(ext)) {
+      showFeedback('error', 'Arquivo Inválido', 'Formatos aceitos: PDF, DOCX, TXT, MD.');
       return;
     }
 
@@ -186,7 +191,7 @@ const KnowledgeAdmin = () => {
         onClick={() => fileInputRef.current?.click()}
         className="mb-8 border-2 border-dashed border-slate-800/60 rounded-xl p-10 flex flex-col items-center justify-center cursor-pointer hover:border-[#818CF8]/40 hover:bg-[#818CF8]/5 transition-all group"
       >
-        <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept=".pdf" className="hidden" />
+        <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept={ACCEPTED_FORMATS} className="hidden" />
         <div className="w-12 h-12 rounded-full bg-slate-800/40 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
           {uploading ? (
             <svg className="animate-spin h-6 w-6 text-[#2DD4BF]" viewBox="0 0 24 24">
@@ -198,7 +203,7 @@ const KnowledgeAdmin = () => {
           )}
         </div>
         <p className="text-sm text-slate-300 font-medium">
-          {uploading ? 'Processando documento...' : 'Clique ou arraste manuais, leis ou normas em PDF'}
+          {uploading ? 'Processando documento...' : 'Clique ou arraste documentos (PDF, DOCX, TXT ou Markdown)'}
         </p>
         <p className="text-xs text-slate-500 mt-2 font-mono">
           Os arquivos serão fatiados e indexados para busca vetorial instantânea.
@@ -253,6 +258,9 @@ const KnowledgeAdmin = () => {
         )}
       </div>
 
+      {/* ── Obsidian Vault Sync Section ── */}
+      <ObsidianSyncSection getAuthHeaders={getAuthHeaders} onSyncDone={loadKnowledge} showFeedback={showFeedback} />
+
       <FeedbackModal 
         isOpen={feedback.isOpen} 
         onClose={() => setFeedback({ ...feedback, isOpen: false })}
@@ -270,6 +278,69 @@ const KnowledgeAdmin = () => {
         confirmText="Excluir Definitivamente"
       />
 
+    </div>
+  );
+};
+
+// ─── Inline Obsidian Sync Component ─────────────────────────────────────────
+const ObsidianSyncSection = ({ getAuthHeaders, onSyncDone, showFeedback }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [vaultPath, setVaultPath] = useState('');
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSync = async () => {
+    if (!vaultPath.trim()) { showFeedback('error', 'Caminho Vazio', 'Informe o caminho do vault Obsidian.'); return; }
+    setSyncing(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${API_URL}/api/admin/obsidian/sync`, {
+        method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'filesystem', vault_path: vaultPath, smart_filter: true }),
+      });
+      const data = await res.json();
+      if (res.ok) { showFeedback('success', 'Sync Concluído', data.message); onSyncDone(); }
+      else showFeedback('error', 'Falha no Sync', data.detail || 'Erro desconhecido');
+    } catch (err) { showFeedback('error', 'Erro', err.message); }
+    finally { setSyncing(false); }
+  };
+
+  return (
+    <div className="mt-8 rounded-xl border border-slate-800/50 overflow-hidden" style={{ background: 'rgba(15,23,42,0.4)' }}>
+      <button onClick={() => setExpanded(!expanded)}
+        className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-800/20 transition-all">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[#818CF8]/10 border border-[#818CF8]/20 flex items-center justify-center">
+            <span className="text-sm">🗃️</span>
+          </div>
+          <div className="text-left">
+            <p className="text-sm font-medium text-slate-200">Sincronizar Vault Obsidian</p>
+            <p className="text-[10px] text-slate-500 font-mono">Importe notas .md do seu vault para a base RAG</p>
+          </div>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="1.5" className={`text-slate-500 transition-transform ${expanded ? 'rotate-180' : ''}`}>
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {expanded && (
+        <div className="px-5 pb-5 pt-2 border-t border-slate-800/30 space-y-3">
+          <div>
+            <label className="text-[11px] text-slate-500 mb-1 block">Caminho do Vault</label>
+            <input value={vaultPath} onChange={e => setVaultPath(e.target.value)}
+              placeholder="C:\\Users\\Contador\\ObsidianVault"
+              className="w-full px-3 py-2 rounded-lg bg-slate-900/80 border border-slate-700/50 text-sm text-slate-200 font-mono focus:border-[#818CF8]/40 outline-none transition-all" />
+          </div>
+          <button onClick={handleSync} disabled={syncing}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#818CF8] text-sm font-medium text-white hover:bg-[#6366f1] transition-all disabled:opacity-50 shadow-lg shadow-[#818CF8]/20">
+            {syncing ? (
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+            ) : '🔄'}
+            {syncing ? 'Sincronizando...' : 'Sincronizar Vault'}
+          </button>
+          <p className="text-[10px] text-slate-600 font-mono">Notas com tags contábeis (#fiscal, #cpc, etc.) são priorizadas automaticamente.</p>
+        </div>
+      )}
     </div>
   );
 };

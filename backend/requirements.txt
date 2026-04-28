@@ -20,3 +20,4 @@ python-docx
 tabulate
 langchain-text-splitters
 apscheduler
+pyyaml

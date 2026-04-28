@@ -16,20 +16,86 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/admin/knowledge", tags=["Knowledge Base"])
 
 
+SUPPORTED_TYPES = {
+    "application/pdf": "pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+    "text/plain": "txt",
+    "text/markdown": "md",
+}
+# Fallback detection by extension
+EXT_MAP = {".pdf": "pdf", ".docx": "docx", ".txt": "txt", ".md": "md"}
+
+
+def _detect_file_type(filename: str, content_type: str | None) -> str | None:
+    """Detect file type from content-type header or file extension."""
+    if content_type and content_type in SUPPORTED_TYPES:
+        return SUPPORTED_TYPES[content_type]
+    ext = ("." + filename.rsplit(".", 1)[-1].lower()) if "." in filename else ""
+    return EXT_MAP.get(ext)
+
+
+def _extract_text(content: bytes, file_type: str, filename: str) -> tuple[str, list[dict]]:
+    """
+    Extract text from supported file formats.
+    Returns (full_text, page_map) where page_map is a list of {start, end, page}.
+    """
+    page_map = []
+
+    if file_type == "pdf":
+        from pypdf import PdfReader
+        reader = PdfReader(io.BytesIO(content))
+        full_text = ""
+        for i, page in enumerate(reader.pages):
+            text = page.extract_text() or ""
+            if text.strip():
+                start = len(full_text)
+                full_text += text + "\n\n"
+                page_map.append({"start": start, "end": len(full_text), "page": i + 1})
+        return full_text, page_map
+
+    elif file_type == "docx":
+        from docx import Document as DocxDocument
+        doc = DocxDocument(io.BytesIO(content))
+        paragraphs = []
+        for para in doc.paragraphs:
+            if para.text.strip():
+                if para.style and para.style.name.startswith("Heading"):
+                    level = para.style.name.replace("Heading ", "")
+                    try:
+                        level = int(level)
+                    except ValueError:
+                        level = 2
+                    paragraphs.append(f"{'#' * level} {para.text.strip()}")
+                else:
+                    paragraphs.append(para.text.strip())
+        full_text = "\n\n".join(paragraphs)
+        page_map = [{"start": 0, "end": len(full_text), "page": 1}]
+        return full_text, page_map
+
+    else:  # txt, md
+        full_text = content.decode("utf-8", errors="replace")
+        page_map = [{"start": 0, "end": len(full_text), "page": 1}]
+        return full_text, page_map
+
+
 @router.post("/ingest")
 async def ingest_document(
     file: UploadFile = File(...),
     current_user: UserProfile = Depends(require_admin_or_socio),
 ):
     """
-    Ingest a PDF document into the knowledge base.
+    Ingest a document into the knowledge base.
+    Supports PDF, DOCX, TXT, and Markdown files.
     Extracts text, splits into chunks, generates embeddings,
     and stores in pgvector for semantic search.
     """
-    if not file.content_type or "pdf" not in file.content_type:
+    filename = file.filename or "document"
+    file_type = _detect_file_type(filename, file.content_type)
+
+    if not file_type:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Apenas arquivos PDF são aceitos para ingestão.",
+            detail="Formato não suportado. Aceitos: PDF, DOCX, TXT, MD.",
         )
 
     settings = get_settings()
@@ -56,24 +122,15 @@ async def ingest_document(
             "id": doc_id,
             "organization_id": org_id,
             "uploaded_by": current_user.id,
-            "file_name": file.filename or "document.pdf",
-            "file_type": "application/pdf",
+            "file_name": filename,
+            "file_type": file.content_type or file_type,
             "file_size": len(content),
-            "storage_path": f"knowledge/{org_id}/{doc_id}.pdf",
+            "storage_path": f"knowledge/{org_id}/{doc_id}.{file_type}",
             "analysis_status": "processing",
         }).execute()
 
-        # 2. Extract text from PDF
-        from pypdf import PdfReader
-        reader = PdfReader(io.BytesIO(content))
-        full_text = ""
-        page_map = []
-        for i, page in enumerate(reader.pages):
-            text = page.extract_text() or ""
-            if text.strip():
-                start = len(full_text)
-                full_text += text + "\n\n"
-                page_map.append({"start": start, "end": len(full_text), "page": i + 1})
+        # 2. Extract text (multi-format)
+        full_text, page_map = _extract_text(content, file_type, filename)
 
         if not full_text.strip():
             supabase.table("documents").update(
@@ -81,7 +138,7 @@ async def ingest_document(
             ).eq("id", doc_id).execute()
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Não foi possível extrair texto do PDF. Verifique se não é um PDF escaneado.",
+                detail="Não foi possível extrair texto do arquivo. Verifique o conteúdo.",
             )
 
         # 3. Split into chunks
@@ -95,7 +152,7 @@ async def ingest_document(
         )
         docs = splitter.create_documents(
             [full_text],
-            metadatas=[{"source": file.filename, "document_id": doc_id}],
+            metadatas=[{"source": filename, "document_id": doc_id}],
         )
 
         # 4. Generate embeddings
