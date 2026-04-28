@@ -5,7 +5,7 @@ import ConfirmModal from './ConfirmModal';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-// ─── Icons ──────────────────────────────────────────────────────────────────
+// ─── Feather Icons ──────────────────────────────────────────────────────────
 const IconObsidian = () => (
   <svg width="28" height="28" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M337.3 101.6L244.6 3.2C243.4 1.8 241.5 1 239.5 1.3C237.6 1.5 235.9 2.8 235.2 4.6L175.5 161.3L337.3 101.6Z" fill="#a78bfa"/>
@@ -49,6 +49,61 @@ const IconCheck = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
+const IconSettings = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3"/>
+    <path d="M12 1v2m0 18v2m-9-11h2m18 0h2m-3.3-6.7-1.4 1.4M6.7 17.3l-1.4 1.4M17.3 17.3l1.4 1.4M6.7 6.7 5.3 5.3"/>
+  </svg>
+);
+
+const IconClock = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+  </svg>
+);
+
+const IconCheckCircle = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+  </svg>
+);
+
+const IconFileText = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/>
+  </svg>
+);
+
+const IconLayers = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>
+  </svg>
+);
+
+const IconCpu = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/>
+    <line x1="9" x2="9" y1="1" y2="4"/><line x1="15" x2="15" y1="1" y2="4"/>
+    <line x1="9" x2="9" y1="20" y2="23"/><line x1="15" x2="15" y1="20" y2="23"/>
+    <line x1="20" x2="23" y1="9" y2="9"/><line x1="20" x2="23" y1="14" y2="14"/>
+    <line x1="1" x2="4" y1="9" y2="9"/><line x1="1" x2="4" y1="14" y2="14"/>
+  </svg>
+);
+
+const IconMessageCircle = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
   </svg>
 );
 
@@ -212,34 +267,31 @@ const ObsidianIntegration = () => {
 
   return (
     <div className="p-6 h-full overflow-y-auto" style={{ background: '#0B1120' }}>
+      <div className="max-w-2xl mx-auto">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#818CF8]/10 border border-[#818CF8]/20 flex items-center justify-center shadow-lg shadow-[#818CF8]/5">
-            <IconObsidian />
-          </div>
-          <div>
-            <h1 className="text-lg font-semibold text-slate-200">Integração Obsidian</h1>
-            <p className="text-xs text-slate-500 font-mono">Sincronize seu vault para enriquecer a base RAG do Copilot</p>
-          </div>
+      <div className="mb-8 text-center">
+        <div className="w-14 h-14 rounded-xl bg-[#818CF8]/10 border border-[#818CF8]/20 flex items-center justify-center shadow-lg shadow-[#818CF8]/5 mx-auto mb-4">
+          <IconObsidian />
         </div>
+        <h1 className="text-xl font-semibold text-slate-200">Integração Obsidian</h1>
+        <p className="text-xs text-slate-500 font-mono mt-1">Sincronize seu vault para enriquecer a base RAG do Copilot</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 p-1 rounded-lg bg-slate-900/50 border border-slate-800/50 w-fit">
-        {[{ id: 'sync', label: '⚙️ Configurar & Sincronizar' }, { id: 'history', label: '📋 Histórico' }].map(tab => (
+      <div className="flex gap-1 mb-6 p-1 rounded-lg bg-slate-900/50 border border-slate-800/50 w-fit mx-auto">
+        {[{ id: 'sync', label: 'Configurar & Sincronizar', icon: <IconSettings /> }, { id: 'history', label: 'Histórico', icon: <IconClock /> }].map(tab => (
           <button key={tab.id} onClick={() => { setActiveTab(tab.id); if (tab.id === 'history') loadHistory(); }}
-            className={`px-4 py-2 rounded-md text-xs font-medium transition-all ${activeTab === tab.id
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-medium transition-all ${activeTab === tab.id
               ? 'bg-[#818CF8]/15 text-[#818CF8] border border-[#818CF8]/20'
               : 'text-slate-400 hover:text-slate-200 border border-transparent'}`}>
-            {tab.label}
+            {tab.icon} {tab.label}
           </button>
         ))}
       </div>
 
       {/* ── Tab: Sync Config ── */}
       {activeTab === 'sync' && (
-        <div className="space-y-6 max-w-2xl">
+        <div className="space-y-6">
           {/* Mode Selector */}
           <div className="rounded-xl border border-slate-800/50 p-5" style={{ background: 'rgba(15,23,42,0.5)' }}>
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Modo de Conexão</label>
@@ -314,7 +366,7 @@ const ObsidianIntegration = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 justify-center">
             <button onClick={handleTestConnection} disabled={testing}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-slate-700/60 text-sm font-medium text-slate-300 hover:border-[#818CF8]/40 hover:text-[#818CF8] transition-all disabled:opacity-50">
               {testing ? <Spinner size="h-4 w-4" /> : <IconPlug />}
@@ -330,7 +382,7 @@ const ObsidianIntegration = () => {
           {/* Test Result Card */}
           {testResult && (
             <div className="rounded-xl border border-[#2DD4BF]/20 bg-[#2DD4BF]/5 p-5 space-y-3 animate-fadeIn">
-              <h3 className="text-sm font-semibold text-[#2DD4BF]">✅ Resultado do Teste</h3>
+              <h3 className="text-sm font-semibold text-[#2DD4BF] flex items-center gap-2"><IconCheckCircle /> Resultado do Teste</h3>
               <div className="grid grid-cols-3 gap-4">
                 {[
                   { label: 'Total de Notas', value: testResult.total_notes, color: '#818CF8' },
@@ -361,15 +413,15 @@ const ObsidianIntegration = () => {
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Como Funciona</h3>
             <div className="space-y-2.5">
               {[
-                { step: '1', text: 'Suas notas .md são lidas do vault Obsidian' },
-                { step: '2', text: 'Frontmatter YAML, tags e wikilinks são extraídos' },
-                { step: '3', text: 'Chunking inteligente por seções (headers markdown)' },
-                { step: '4', text: 'Embeddings gerados e armazenados no pgvector' },
-                { step: '5', text: 'Notas ficam disponíveis no RAG do Chat Global' },
-              ].map(item => (
-                <div key={item.step} className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#818CF8]/10 border border-[#818CF8]/20 flex items-center justify-center flex-shrink-0">
-                    <span className="text-[10px] font-bold text-[#818CF8] font-mono">{item.step}</span>
+                { icon: <IconFileText />, text: 'Suas notas .md são lidas do vault Obsidian' },
+                { icon: <IconLayers />, text: 'Frontmatter YAML, tags e wikilinks são extraídos' },
+                { icon: <IconCpu />, text: 'Chunking inteligente por seções (headers markdown)' },
+                { icon: <IconSync />, text: 'Embeddings gerados e armazenados no pgvector' },
+                { icon: <IconMessageCircle />, text: 'Notas ficam disponíveis no RAG do Chat Global' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-[#818CF8]/10 border border-[#818CF8]/20 flex items-center justify-center flex-shrink-0 text-[#818CF8]">
+                    {item.icon}
                   </div>
                   <p className="text-xs text-slate-400">{item.text}</p>
                 </div>
@@ -381,7 +433,7 @@ const ObsidianIntegration = () => {
 
       {/* ── Tab: History ── */}
       {activeTab === 'history' && (
-        <div className="rounded-lg border border-slate-800/50 overflow-hidden" style={{ background: 'rgba(15,23,42,0.5)' }}>
+        <div className="rounded-lg border border-slate-800/50 overflow-hidden" style={{ background: 'rgba(15,23,42,0.5)' }} >
           <div className="px-4 py-3 border-b border-slate-800/40 bg-slate-900/40 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-slate-300">Sincronizações Anteriores</h2>
             <button onClick={loadHistory} className="text-slate-500 hover:text-[#818CF8] transition-all"><IconSync /></button>
@@ -436,6 +488,7 @@ const ObsidianIntegration = () => {
         onConfirm={() => execDeleteSync(confirmObj.id)}
         title="Remover Sincronização" message="Deseja remover esta sincronização e todos os fragmentos RAG associados?"
         confirmText="Excluir Definitivamente" />
+      </div>
     </div>
   );
 };
