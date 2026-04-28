@@ -203,7 +203,7 @@ class ObsidianService:
             vault_path: Absolute path to the Obsidian vault root
             folder_filter: Optional subfolder to restrict scan
         """
-        vault = Path(vault_path)
+        vault = Path(vault_path.strip().strip('"').strip("'"))
         if not vault.exists() or not vault.is_dir():
             raise ValueError(f"Caminho do vault inválido: {vault_path}")
 
