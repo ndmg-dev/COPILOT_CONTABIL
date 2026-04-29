@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import MessageActions from './MessageActions';
 import { useUI } from '../context/UIContext';
 
@@ -217,7 +220,10 @@ const Workspace = () => {
                                 ) : (
                                     <>
                                         <div className={`prose prose-sm max-w-none ${m.role === 'user' ? 'prose-p:text-[#E0E7FF] text-[#E0E7FF]' : 'prose-invert'}`}>
-                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                            <ReactMarkdown 
+                                                remarkPlugins={[remarkGfm, remarkMath]}
+                                                rehypePlugins={[rehypeKatex]}
+                                            >
                                                 {m.content}
                                             </ReactMarkdown>
                                         </div>
