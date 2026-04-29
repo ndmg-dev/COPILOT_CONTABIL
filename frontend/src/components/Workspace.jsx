@@ -203,7 +203,23 @@ const Workspace = () => {
                             <h3 className="text-2xl font-bold font-mono tracking-tighter text-slate-400">Contexto Analítico</h3>
                         </div>
                     )}
-                    {messages.map((m, i) => (
+                    {messages.map((m, i) => {
+                        const lines = (m.content || '').split('\n');
+                        const mainLines = [];
+                        const suggestions = [];
+
+                        for (const line of lines) {
+                            if (line.trim().startsWith('SUGESTÃO_DE_PERGUNTA:')) {
+                                suggestions.push(line.replace('SUGESTÃO_DE_PERGUNTA:', '').trim());
+                            } else {
+                                mainLines.push(line);
+                            }
+                        }
+
+                        const mainContent = mainLines.join('\n');
+                        const safeContent = mainContent.replace(/(?<!\\)R\$/g, 'R\\$');
+
+                        return (
                         <div key={i} className={`flex gap-4 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                             {m.role === 'assistant' && (
                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#818CF8] to-[#2DD4BF] flex items-center justify-center text-slate-900 font-bold text-xs shadow-lg flex-shrink-0">
@@ -218,15 +234,30 @@ const Workspace = () => {
                                         <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0.3s' }}></span>
                                     </div>
                                 ) : (
-                                    <>
+                                    <div className="flex flex-col w-full">
                                         <div className={`prose prose-sm max-w-none ${m.role === 'user' ? 'prose-p:text-[#E0E7FF] text-[#E0E7FF]' : 'prose-invert'}`}>
                                             <ReactMarkdown 
                                                 remarkPlugins={[remarkGfm, [remarkMath, { singleDollarTextMath: false }]]}
                                                 rehypePlugins={[rehypeKatex]}
                                             >
-                                                {(m.content || '').replace(/(?<!\\)R\$/g, 'R\\$')}
+                                                {safeContent}
                                             </ReactMarkdown>
                                         </div>
+                                        {suggestions.length > 0 && m.role === 'assistant' && (
+                                            <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-slate-700/50">
+                                                <span className="w-full text-[10px] font-mono text-slate-500 uppercase mb-1">Perguntas Relacionadas</span>
+                                                {suggestions.map((sug, idx) => (
+                                                    <button 
+                                                        key={idx}
+                                                        onClick={() => handleSend(sug)}
+                                                        className="px-3 py-1.5 text-xs font-medium text-[#2DD4BF] bg-[#2DD4BF]/5 border border-[#2DD4BF]/20 rounded-full hover:bg-[#2DD4BF]/20 hover:border-[#2DD4BF]/40 transition-all text-left flex items-center gap-1.5 shadow-sm"
+                                                    >
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                                        {sug}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                         {m.role === 'assistant' && !m.isError && (
                                             <MessageActions
                                                 content={m.content}
@@ -235,11 +266,12 @@ const Workspace = () => {
                                                 variant="workspace"
                                             />
                                         )}
-                                    </>
+                                    </div>
                                 )}
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                     <div ref={messagesEndRef} />
                 </div>
 

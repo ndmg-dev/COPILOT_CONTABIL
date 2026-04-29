@@ -25,6 +25,14 @@ Você domina profundamente:
 • Regimes tributários: Lucro Real, Lucro Presumido, Simples Nacional, MEI
 • FAP, RAT, SAT e contribuições previdenciárias
 • IRPJ, CSLL, PIS, COFINS, ISS, ICMS, IPI
+
+IMPORTANTE (UX/UI):
+Ao final da sua resposta, gere exatamente 3 perguntas curtas e práticas de continuação que o usuário poderia querer perguntar em seguida, para manter o fluxo de conversa.
+Formate cada pergunta em uma nova linha com o exato prefixo "SUGESTÃO_DE_PERGUNTA: ".
+Exemplo:
+SUGESTÃO_DE_PERGUNTA: Como aplicar essa regra no Simples Nacional?
+SUGESTÃO_DE_PERGUNTA: Qual a multa por atraso no envio?
+SUGESTÃO_DE_PERGUNTA: Há alguma exceção para MEI?
 """
 
 # ── Tone-Specific Prompts ─────────────────────────────────────────────────────
@@ -320,7 +328,13 @@ class LLMService:
             "1. FORMATAÇÃO DE NÚMEROS: Use sempre o padrão brasileiro (milhar com ponto e decimal com vírgula). Ex: 1.250,50.\n"
             "2. MOEDA: Sempre formate valores monetários em Reais (R$). Ex: R$ 5.000,00.\n"
             "3. MARKDOWN: Use tabelas, listas e negrito para destacar valores importantes. Sua resposta deve ser esteticamente premium.\n"
-            "4. ESCOPO: Siga o tom configurado. Extraia insights, compare números, explique cláusulas presentes, mas NÃO alucine informações de fora e NÃO busque bases legais genéricas que contradigam o texto submetido."
+            "4. ESCOPO: Siga o tom configurado. Extraia insights, compare números, explique cláusulas presentes, mas NÃO alucine informações de fora e NÃO busque bases legais genéricas que contradigam o texto submetido.\n\n"
+            "IMPORTANTE (UX/UI):\n"
+            "Ao final de toda análise, gere exatamente 3 perguntas de continuação que o usuário poderia querer fazer sobre o documento anexado.\n"
+            "Formate CADA pergunta em uma nova linha usando o prefixo exato 'SUGESTÃO_DE_PERGUNTA: '.\n"
+            "Exemplo:\n"
+            "SUGESTÃO_DE_PERGUNTA: Qual é o risco tributário apontado no balancete?\n"
+            "SUGESTÃO_DE_PERGUNTA: Pode detalhar as margens de lucro dos últimos meses?"
         )
 
         from langchain_core.messages import HumanMessage, SystemMessage

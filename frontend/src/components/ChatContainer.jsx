@@ -201,17 +201,47 @@ const SuggestionIcon = ({ type }) => {
 };
 
 // ─── Format AI Response ─────────────────────────────────────────────────────
-const FormattedMessage = ({ content, role }) => {
-  const safeContent = (content || '').replace(/(?<!\\)R\$/g, 'R\\$');
+const FormattedMessage = ({ content, role, onSuggestionClick }) => {
+  const lines = (content || '').split('\n');
+  const mainLines = [];
+  const suggestions = [];
+
+  for (const line of lines) {
+    if (line.trim().startsWith('SUGESTÃO_DE_PERGUNTA:')) {
+      suggestions.push(line.replace('SUGESTÃO_DE_PERGUNTA:', '').trim());
+    } else {
+      mainLines.push(line);
+    }
+  }
+
+  const mainContent = mainLines.join('\n');
+  const safeContent = mainContent.replace(/(?<!\\)R\$/g, 'R\\$');
   
   return (
-    <div className={`prose prose-sm max-w-none ${role === 'user' ? 'prose-p:text-[#E0E7FF] text-[#E0E7FF]' : 'prose-invert'}`}>
-      <ReactMarkdown 
-        remarkPlugins={[remarkGfm, [remarkMath, { singleDollarTextMath: false }]]}
-        rehypePlugins={[rehypeKatex]}
-      >
-        {safeContent}
-      </ReactMarkdown>
+    <div className="flex flex-col w-full">
+      <div className={`prose prose-sm max-w-none ${role === 'user' ? 'prose-p:text-[#E0E7FF] text-[#E0E7FF]' : 'prose-invert'}`}>
+        <ReactMarkdown 
+          remarkPlugins={[remarkGfm, [remarkMath, { singleDollarTextMath: false }]]}
+          rehypePlugins={[rehypeKatex]}
+        >
+          {safeContent}
+        </ReactMarkdown>
+      </div>
+      {suggestions.length > 0 && role === 'assistant' && (
+        <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-slate-700/50">
+          <span className="w-full text-[10px] font-mono text-slate-500 uppercase mb-1">Perguntas Relacionadas</span>
+          {suggestions.map((sug, idx) => (
+            <button 
+              key={idx}
+              onClick={() => onSuggestionClick && onSuggestionClick(sug)}
+              className="px-3 py-1.5 text-xs font-medium text-[#2DD4BF] bg-[#2DD4BF]/5 border border-[#2DD4BF]/20 rounded-full hover:bg-[#2DD4BF]/20 hover:border-[#2DD4BF]/40 transition-all text-left flex items-center gap-1.5 shadow-sm"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              {sug}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -459,7 +489,7 @@ const ChatContainer = () => {
                 <div className="flex items-center gap-2 mb-1.5 opacity-50">
                   <span className="text-[10px] font-mono font-bold uppercase">{msg.role === 'user' ? 'Você' : 'Copilot'}</span>
                 </div>
-                <FormattedMessage content={msg.content} role={msg.role} />
+                <FormattedMessage content={msg.content} role={msg.role} onSuggestionClick={(text) => sendMessage(text)} />
                 {msg.role === 'assistant' && (
                   <MessageActions
                     content={msg.content}
