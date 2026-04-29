@@ -221,10 +221,10 @@ const Workspace = () => {
                                     <>
                                         <div className={`prose prose-sm max-w-none ${m.role === 'user' ? 'prose-p:text-[#E0E7FF] text-[#E0E7FF]' : 'prose-invert'}`}>
                                             <ReactMarkdown 
-                                                remarkPlugins={[remarkGfm, remarkMath]}
+                                                remarkPlugins={[remarkGfm, [remarkMath, { singleDollarTextMath: false }]]}
                                                 rehypePlugins={[rehypeKatex]}
                                             >
-                                                {m.content}
+                                                {(m.content || '').replace(/(?<!\\)R\$/g, 'R\\$')}
                                             </ReactMarkdown>
                                         </div>
                                         {m.role === 'assistant' && !m.isError && (

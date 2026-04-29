@@ -202,13 +202,15 @@ const SuggestionIcon = ({ type }) => {
 
 // ─── Format AI Response ─────────────────────────────────────────────────────
 const FormattedMessage = ({ content, role }) => {
+  const safeContent = (content || '').replace(/(?<!\\)R\$/g, 'R\\$');
+  
   return (
     <div className={`prose prose-sm max-w-none ${role === 'user' ? 'prose-p:text-[#E0E7FF] text-[#E0E7FF]' : 'prose-invert'}`}>
       <ReactMarkdown 
-        remarkPlugins={[remarkGfm, remarkMath]}
+        remarkPlugins={[remarkGfm, [remarkMath, { singleDollarTextMath: false }]]}
         rehypePlugins={[rehypeKatex]}
       >
-        {content}
+        {safeContent}
       </ReactMarkdown>
     </div>
   );
