@@ -263,6 +263,7 @@ const ChatContainer = () => {
   const [attachedFile, setAttachedFile] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const textareaRef = useRef(null);
 
   useEffect(() => { loadConversations(); }, []);
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
@@ -317,6 +318,10 @@ const ChatContainer = () => {
       : textToSend;
 
     setInput('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+    
     const userMsg = { id: Date.now(), role: 'user', content: displayText, createdAt: new Date().toISOString() };
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);
@@ -537,6 +542,7 @@ const ChatContainer = () => {
 
             {/* Text Input */}
             <textarea
+              ref={textareaRef}
               rows={1}
               value={input}
               onChange={e => {
