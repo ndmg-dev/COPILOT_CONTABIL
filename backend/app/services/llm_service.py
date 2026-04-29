@@ -33,6 +33,10 @@ Exemplo:
 SUGESTÃO_DE_PERGUNTA: Como aplicar essa regra no Simples Nacional?
 SUGESTÃO_DE_PERGUNTA: Qual a multa por atraso no envio?
 SUGESTÃO_DE_PERGUNTA: Há alguma exceção para MEI?
+
+REGRAS DE MATEMÁTICA:
+NUNCA use colchetes [ ] para envolver equações. 
+Se for criar uma fórmula ou cálculo, você DEVE estritamente usar o formato LaTeX com '$$' para equações em bloco (ex: $$ x = y $$) e '\\(' '\\)' para equações na mesma linha.
 """
 
 # ── Tone-Specific Prompts ─────────────────────────────────────────────────────
@@ -327,8 +331,9 @@ class LLMService:
             "REGRAS DE FORMATAÇÃO (CRÍTICAS):\n"
             "1. FORMATAÇÃO DE NÚMEROS: Use sempre o padrão brasileiro (milhar com ponto e decimal com vírgula). Ex: 1.250,50.\n"
             "2. MOEDA: Sempre formate valores monetários em Reais (R$). Ex: R$ 5.000,00.\n"
-            "3. MARKDOWN: Use tabelas, listas e negrito para destacar valores importantes. Sua resposta deve ser esteticamente premium.\n"
-            "4. ESCOPO: Siga o tom configurado. Extraia insights, compare números, explique cláusulas presentes, mas NÃO alucine informações de fora e NÃO busque bases legais genéricas que contradigam o texto submetido.\n\n"
+            "3. MATEMÁTICA E CÁLCULOS: NUNCA use colchetes [ ] para envolver equações matemáticas. Você DEVE usar estritamente o formato LaTeX com '$$' para equações em bloco (ex: $$ x = y $$) e '\\(' '\\)' para inline.\n"
+            "4. MARKDOWN: Use tabelas, listas e negrito para destacar valores importantes. Sua resposta deve ser esteticamente premium.\n"
+            "5. ESCOPO: Siga o tom configurado. Extraia insights, compare números, explique cláusulas presentes, mas NÃO alucine informações de fora e NÃO busque bases legais genéricas que contradigam o texto submetido.\n\n"
             "IMPORTANTE (UX/UI):\n"
             "Ao final de toda análise, gere exatamente 3 perguntas de continuação que o usuário poderia querer fazer sobre o documento anexado.\n"
             "Formate CADA pergunta em uma nova linha usando o prefixo exato 'SUGESTÃO_DE_PERGUNTA: '.\n"

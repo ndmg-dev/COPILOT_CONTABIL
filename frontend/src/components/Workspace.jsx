@@ -216,7 +216,8 @@ const Workspace = () => {
                             }
                         }
 
-                        const mainContent = mainLines.join('\n');
+                        let mainContent = mainLines.join('\n');
+                        mainContent = mainContent.replace(/\[\s*(.*?(?:\\text|\\sum|\\frac|\\times|\\div|VP\s*=).*?)\s*\]/g, '$$$$ $1 $$$$');
                         const safeContent = mainContent.replace(/(?<!\\)R\$/g, 'R\\$');
 
                         return (
