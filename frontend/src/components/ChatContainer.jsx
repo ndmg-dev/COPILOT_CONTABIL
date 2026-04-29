@@ -3,6 +3,10 @@ import { supabase } from '../utils/supabase';
 import ConfirmModal from './ConfirmModal';
 import MessageActions from './MessageActions';
 import { useUI } from '../context/UIContext';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -197,120 +201,18 @@ const SuggestionIcon = ({ type }) => {
 };
 
 // ─── Format AI Response ─────────────────────────────────────────────────────
-const FormattedMessage = ({ content }) => {
-  const lines = content.split('\n');
-  const elements = [];
-  let codeBlock = null;
-  let mathBlock = false;
-  let mathLines = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-
-    if (line.startsWith('```')) {
-      if (codeBlock) {
-        elements.push(
-          <div key={`code-${i}`} className="code-block">
-            <div className="code-block-header">{codeBlock.lang || 'code'}</div>
-            <pre className="text-xs font-mono"><code>{codeBlock.lines.join('\n')}</code></pre>
-          </div>
-        );
-        codeBlock = null;
-      } else {
-        codeBlock = { lang: line.slice(3).trim(), lines: [] };
-      }
-      continue;
-    }
-    if (codeBlock) { codeBlock.lines.push(line); continue; }
-
-    if (line.trim() === '\\[') { mathBlock = true; mathLines = []; continue; }
-    if (line.trim() === '\\]' && mathBlock) {
-      elements.push(
-        <div key={`math-${i}`} className="my-3 px-4 py-3 rounded-md bg-[#020617]/60 border border-slate-800/40">
-          <pre className="font-mono text-sm text-[#2DD4BF] text-center whitespace-pre-wrap">{mathLines.join('\n')}</pre>
-        </div>
-      );
-      mathBlock = false;
-      continue;
-    }
-    if (mathBlock) { mathLines.push(line); continue; }
-
-    if (line.startsWith('#### ')) {
-      elements.push(<h5 key={i} className="text-sm font-semibold text-slate-200 mt-4 mb-1">{formatInline(line.slice(5))}</h5>);
-    } else if (line.startsWith('### ')) {
-      elements.push(<h4 key={i} className="text-sm font-semibold text-[#818CF8] mt-4 mb-1">{formatInline(line.slice(4))}</h4>);
-    } else if (line.startsWith('## ')) {
-      elements.push(<h3 key={i} className="text-sm font-bold text-[#2DD4BF] mt-4 mb-1">{formatInline(line.slice(3))}</h3>);
-    } else if (line.startsWith('# ')) {
-      elements.push(<h2 key={i} className="text-base font-bold text-slate-100 mt-4 mb-2">{formatInline(line.slice(2))}</h2>);
-    } else if (line.startsWith('> ')) {
-      elements.push(<blockquote key={i} className="legal-citation">{formatInline(line.slice(2))}</blockquote>);
-    } else if (/^[-*_]{3,}$/.test(line.trim())) {
-      elements.push(<hr key={i} className="border-slate-800/40 my-3" />);
-    } else if (line.startsWith('- ') || line.startsWith('* ')) {
-      elements.push(
-        <div key={i} className="flex gap-2 ml-2 text-sm text-slate-300">
-          <span className="text-[#2DD4BF] mt-0.5 text-[10px] flex-shrink-0">&#9656;</span>
-          <span className="flex-1">{formatInline(line.slice(2))}</span>
-        </div>
-      );
-    } else if (/^\d+\.\s/.test(line)) {
-      const match = line.match(/^(\d+)\.\s(.*)/);
-      if (match) {
-        elements.push(
-          <div key={i} className="flex gap-2.5 ml-1 text-sm text-slate-300 mt-1">
-            <span className="text-[#818CF8] font-mono text-xs mt-0.5 w-5 text-right flex-shrink-0">{match[1]}.</span>
-            <span className="flex-1">{formatInline(match[2])}</span>
-          </div>
-        );
-      }
-    } else if (line.trim()) {
-      elements.push(<p key={i} className="text-sm text-slate-300 leading-relaxed">{formatInline(line)}</p>);
-    } else {
-      elements.push(<div key={i} className="h-2" />);
-    }
-  }
-
-  return <div className="space-y-1">{elements}</div>;
+const FormattedMessage = ({ content, role }) => {
+  return (
+    <div className={`prose prose-sm max-w-none ${role === 'user' ? 'prose-p:text-[#E0E7FF] text-[#E0E7FF]' : 'prose-invert'}`}>
+      <ReactMarkdown 
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
 };
-
-function formatInline(text) {
-  if (!text) return null;
-  const parts = [];
-  let remaining = text;
-  while (remaining.length > 0) {
-    const boldMatch = remaining.match(/^(.*?)\*\*(.+?)\*\*(.*)/s);
-    const codeMatch = remaining.match(/^(.*?)`([^`]+)`(.*)/);
-    const mathMatch = remaining.match(/^(.*?)\\\((.+?)\\\)(.*)/);
-    let earliest = null;
-    let type = null;
-    if (boldMatch && boldMatch[1] !== undefined) {
-      const pos = boldMatch[1].length;
-      if (!earliest || pos < earliest.pos) { earliest = { pos, match: boldMatch }; type = 'bold'; }
-    }
-    if (codeMatch && codeMatch[1] !== undefined) {
-      const pos = codeMatch[1].length;
-      if (!earliest || pos < earliest.pos) { earliest = { pos, match: codeMatch }; type = 'code'; }
-    }
-    if (mathMatch && mathMatch[1] !== undefined) {
-      const pos = mathMatch[1].length;
-      if (!earliest || pos < earliest.pos) { earliest = { pos, match: mathMatch }; type = 'math'; }
-    }
-    if (!earliest) { parts.push({ type: 'text', content: remaining }); break; }
-    const m = earliest.match;
-    if (m[1]) parts.push({ type: 'text', content: m[1] });
-    parts.push({ type, content: m[2] });
-    remaining = m[3] || '';
-  }
-  return parts.map((part, i) => {
-    switch (part.type) {
-      case 'bold': return <strong key={i} className="text-slate-100 font-semibold">{part.content}</strong>;
-      case 'code': return <code key={i} className="inline-code">{part.content}</code>;
-      case 'math': return <span key={i} className="font-mono text-[#2DD4BF] text-xs bg-[#2DD4BF]/5 px-1 py-0.5 rounded">{part.content}</span>;
-      default: return <span key={i}>{part.content}</span>;
-    }
-  });
-}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CHAT CONTAINER
@@ -555,7 +457,7 @@ const ChatContainer = () => {
                 <div className="flex items-center gap-2 mb-1.5 opacity-50">
                   <span className="text-[10px] font-mono font-bold uppercase">{msg.role === 'user' ? 'Você' : 'Copilot'}</span>
                 </div>
-                <FormattedMessage content={msg.content} />
+                <FormattedMessage content={msg.content} role={msg.role} />
                 {msg.role === 'assistant' && (
                   <MessageActions
                     content={msg.content}
