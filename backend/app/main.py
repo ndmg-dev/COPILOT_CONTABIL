@@ -23,7 +23,6 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     logger.info(f"🚀 {settings.app_name} v{settings.app_version} starting...")
     logger.info(f"📡 Supabase URL: {settings.supabase_url[:40]}...")
-    logger.info(f"🤖 LLM Model: {settings.llm_model}")
     logger.info(f"🔧 Debug: {settings.debug}")
     
     # Initialize and start CRON jobs
