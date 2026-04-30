@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     # OpenAI / LLM
     openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
-    llm_model: str = Field(default="gpt-4o-mini", alias="LLM_MODEL")
+    llm_model: str = Field(default="gpt-4o", alias="LLM_MODEL")
     llm_temperature: float = Field(default=0.3, alias="LLM_TEMPERATURE")
 
     # Brevo Mail Integration
