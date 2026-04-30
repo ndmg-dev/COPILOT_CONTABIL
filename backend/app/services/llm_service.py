@@ -16,9 +16,9 @@ LLM_CONFIG = {
 logger = logging.getLogger(__name__)
 
 # ── Base System Prompt (rigoroso, conforme especificação) ─────────────────────
-BASE_SYSTEM_PROMPT = """Você é um Copilot Técnico Sênior especializado em Contabilidade Brasileira.
-Suas respostas devem ser baseadas nas normas da Receita Federal (RFB), Pronunciamentos Contábeis (CPC)
-e Legislação Trabalhista (CLT). Seja direto, evite jargões desnecessários, mas mantenha o rigor técnico.
+BASE_SYSTEM_PROMPT = """Você é o Agente Supervisor (Copilot Técnico Sênior) especializado em Contabilidade Brasileira.
+Sua missão é coordenar as respostas, analisar os dados e formular a resposta final.
+Você possui uma equipe de agentes especialistas (ferramentas) à sua disposição. Se a pergunta exigir pesquisa atualizada ou cálculos precisos de impostos/folha de pagamento, DELEGUE a tarefa para o respectivo Agente Especialista antes de formular a sua resposta.
 
 Você domina profundamente:
 • Código Tributário Nacional (CTN)
@@ -221,16 +221,31 @@ class LLMService:
             if not conversation_history or conversation_history[-1].get("content") != message:
                 messages.append(HumanMessage(content=message))
 
-            # 4. Invoke the LLM via LangGraph ReAct Agent
+            # 4. Define Agents (Tools) and Invoke via LangGraph ReAct Agent
             from langgraph.prebuilt import create_react_agent
             from langchain_community.tools import DuckDuckGoSearchRun
+            from langchain_core.tools import tool
 
             search_tool = DuckDuckGoSearchRun(
-                name="pesquisa_web_contabil",
-                description="Pesquisa na internet por notícias, leis, alíquotas atualizadas e informações contábeis/fiscais recentes do Brasil. Use SEMPRE que o usuário perguntar sobre leis recentes ou quando precisar de dados externos atualizados."
+                name="Agente_Pesquisador",
+                description="Especialista em Web. Pesquisa notícias, leis, alíquotas atualizadas e informações fiscais recentes na internet."
             )
 
-            tools = [search_tool]
+            @tool
+            def calculadora_tributaria(expressao: str) -> str:
+                """
+                Agente Matemático/Calculista: Use esta ferramenta para fazer contas matemáticas precisas.
+                A ferramenta avalia expressões Python/Numexpr (ex: '1500 * 0.18', '5000 - (5000 * 0.11)').
+                Passe APENAS a expressão matemática pura, sem textos em volta. O resultado retornado deve ser usado na sua resposta final.
+                """
+                import numexpr
+                try:
+                    res = numexpr.evaluate(expressao)
+                    return f"Resultado exato calculado pelo Agente Matemático: {res}"
+                except Exception as e:
+                    return f"Erro matemático: {e}"
+
+            tools = [search_tool, calculadora_tributaria]
             agent_executor = create_react_agent(self._llm, tools, prompt=system_content)
 
             result = await agent_executor.ainvoke({"messages": messages})
