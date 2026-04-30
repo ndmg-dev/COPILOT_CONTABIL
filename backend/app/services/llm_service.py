@@ -88,11 +88,12 @@ NÍVEL DE DETALHE: PADRÃO
 - Resposta recomendada cobrindo a parte teórica básica e a solução.
 """,
     DetailLevelEnum.DETALHADA: """
-NÍVEL DE DETALHE: DETALHADA
-- Forneça uma análise passo a passo.
-- Detalhe exceções à regra, riscos contábeis e inclua exemplos práticos detalhados.
-- Se for cálculo, explique cada métrica da fórmula em profundidade.
-- Separe em sessões claras com muitos detalhes em markdown.
+NÍVEL DE DETALHE OBRIGATÓRIO: EXTREMAMENTE DETALHADA E EXAUSTIVA
+- Você foi instruído a gerar uma resposta longa, densa e aprofundada. 
+- É estritamente obrigatório fornecer uma análise minuciosa passo a passo.
+- Explore TODAS as exceções à regra, cenários alternativos e riscos contábeis/fiscais envolvidos.
+- INCLUA SEMPRE pelo menos um exemplo prático (com números) para ilustrar sua explicação, mesmo que não tenha sido solicitado.
+- Seja prolixo, divida a resposta em múltiplas sessões claras em Markdown e não poupe palavras para explicar o contexto.
 """
 }
 
