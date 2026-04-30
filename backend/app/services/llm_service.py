@@ -231,7 +231,7 @@ class LLMService:
             )
 
             tools = [search_tool]
-            agent_executor = create_react_agent(self._llm, tools, state_modifier=system_content)
+            agent_executor = create_react_agent(self._llm, tools, messages_modifier=system_content)
 
             result = await agent_executor.ainvoke({"messages": messages})
 
