@@ -80,7 +80,7 @@ const adminNavigation = [
   { to: '/app/team', label: 'Equipe', icon: IconUsers },
   { to: '/app/knowledge', label: 'Base Legal', icon: IconBook },
   { to: '/app/whatsapp', label: 'WhatsApp', icon: IconWhatsApp },
-  { to: '/app/obsidian', label: 'Obsidian Vault', icon: IconObsidianNav },
+  // { to: '/app/obsidian', label: 'Obsidian Vault', icon: IconObsidianNav },
 ];
 
 const Layout = ({ onLogout, session }) => {

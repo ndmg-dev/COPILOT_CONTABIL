@@ -9,7 +9,7 @@ import KnowledgeAdmin from './components/KnowledgeAdmin';
 import LoginPage from './components/LoginPage';
 import Workspace from './components/Workspace';
 import WhatsAppIntegration from './components/WhatsAppIntegration';
-import ObsidianIntegration from './components/ObsidianIntegration';
+// import ObsidianIntegration from './components/ObsidianIntegration';
 import { WorkspaceProvider } from './context/WorkspaceContext';
 import { UIProvider } from './context/UIContext';
 import TermsOfUse from './pages/TermsOfUse';
@@ -98,7 +98,7 @@ function AppContent() {
                   <Route path="team" element={<TeamManagement />} />
                   <Route path="knowledge" element={<KnowledgeAdmin />} />
                   <Route path="whatsapp" element={<WhatsAppIntegration />} />
-                  <Route path="obsidian" element={<ObsidianIntegration />} />
+                  {/* <Route path="obsidian" element={<ObsidianIntegration />} /> */}
                 </Route>
                 <Route path="*" element={<Navigate to="/app/chat" replace />} />
               </>
