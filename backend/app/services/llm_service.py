@@ -7,6 +7,12 @@ from typing import Optional
 from app.config import get_settings
 from app.models.schemas import ToneEnum, DetailLevelEnum
 
+LLM_CONFIG = {
+    "model": "gpt-4o",
+    "temperature": 0.3,
+    "max_tokens": 2048,
+}
+
 logger = logging.getLogger(__name__)
 
 # ── Base System Prompt (rigoroso, conforme especificação) ─────────────────────
@@ -109,14 +115,12 @@ class LLMService:
             from langchain_openai import ChatOpenAI
 
             self._llm = ChatOpenAI(
-                model=self.settings.llm_model,
-                temperature=self.settings.llm_temperature,
                 api_key=self.settings.openai_api_key,
-                max_tokens=2048,
+                **LLM_CONFIG
             )
             self._initialized = True
             logger.info(
-                f"✅ LLM Service initialized with model: {self.settings.llm_model}"
+                f"✅ LLM Service initialized with config: {LLM_CONFIG}"
             )
 
         except Exception as e:
