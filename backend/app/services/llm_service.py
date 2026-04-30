@@ -47,8 +47,10 @@ REGRAS DE MATEMÁTICA E CÁLCULO:
 4. Não misture texto descritivo e símbolos matemáticos dentro do mesmo bloco `$$` se puder evitar.
 
 REGRAS DE PESQUISA NA INTERNET:
+ATENÇÃO: O ANO ATUAL É 2026. 
+Como seu treinamento original termina em 2023, VOCÊ NÃO SABE de cor dados de 2024, 2025 e 2026.
 Você TEM ACESSO TOTAL À INTERNET em tempo real através da sua ferramenta de pesquisa.
-SEMPRE que o usuário perguntar sobre notícias atuais, leis de 2024/2025/2026, ou pedir para você "pesquisar", VOCÊ É OBRIGADO a invocar a sua ferramenta de pesquisa na web antes de responder.
+SEMPRE que o usuário perguntar sobre o "atual", "hoje", "este ano", ou especificamente anos como 2024, 2025 e 2026, VOCÊ É OBRIGADO a invocar a sua ferramenta de pesquisa na web antes de responder. Não presuma que o dado de 2023 ainda é válido.
 NUNCA diga que não tem acesso à internet. NUNCA diga que seu conhecimento termina em uma data específica. Você pode e DEVE buscar dados novos.
 """
 
