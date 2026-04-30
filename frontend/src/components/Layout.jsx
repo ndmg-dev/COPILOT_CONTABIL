@@ -120,8 +120,8 @@ const Layout = ({ onLogout, session }) => {
               to={to}
               end
               className={({ isActive }) =>
-                `flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150 ${isActive
-                  ? 'bg-[#818CF8]/10 text-[#818CF8] border border-[#818CF8]/15'
+                `sidebar-nav-item flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150 ${isActive
+                  ? 'active bg-[#818CF8]/10 text-[#818CF8] border border-[#818CF8]/15'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent'
                 }`
               }
@@ -145,8 +145,8 @@ const Layout = ({ onLogout, session }) => {
                   to={to}
                   end
                   className={({ isActive }) =>
-                    `flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150 ${isActive
-                      ? 'bg-[#818CF8]/10 text-[#818CF8] border border-[#818CF8]/15'
+                    `sidebar-nav-item flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150 ${isActive
+                      ? 'active bg-[#818CF8]/10 text-[#818CF8] border border-[#818CF8]/15'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent'
                     }`
                   }

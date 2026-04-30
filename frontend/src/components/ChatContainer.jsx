@@ -149,15 +149,17 @@ const IconUpload = () => (
 
 // ─── Terminal Loader ────────────────────────────────────────────────────────
 const TerminalLoader = () => (
-  <div className="flex justify-start">
+  <div className="flex justify-start msg-animate-ai">
     <div className="chat-bubble-ai min-w-[200px] terminal-loader">
       <div className="flex items-center gap-2 mb-3 opacity-40">
         <span className="text-[10px] font-mono uppercase tracking-tighter">Copilot Kernel</span>
         <span className="terminal-cursor" />
       </div>
-      <div className="space-y-1">
-        <div className="text-[11px] font-mono text-slate-500">CONSULTING_DB... <span className="text-[#2DD4BF]">OK</span></div>
-        <div className="text-[11px] font-mono text-slate-500">APPLYING_NBC_TG... <span className="text-[#2DD4BF]">OK</span></div>
+      <div className="space-y-1.5">
+        <div className="text-[11px] font-mono text-slate-500">CONSULTING_RAG_DATABASE... <span className="text-[#2DD4BF]">OK</span></div>
+        <div className="text-[11px] font-mono text-slate-500">AGENT_SUPERVISOR... <span className="text-[#2DD4BF]">DELEGATING</span></div>
+        <div className="text-[11px] font-mono text-slate-500">AGENT_PESQUISADOR... <span className="text-yellow-400/70">STANDBY</span></div>
+        <div className="text-[11px] font-mono text-slate-500">AGENT_CALCULISTA... <span className="text-yellow-400/70">STANDBY</span></div>
         <div className="text-[11px] font-mono text-[#818CF8] animate-pulse">GENERATING_LEGAL_RESPONSE...</div>
       </div>
       <div className="terminal-progress"><div className="terminal-progress-bar" /></div>
@@ -407,7 +409,7 @@ const ChatContainer = () => {
           )}
           {conversations.map(conv => (
             <div key={conv.id} onClick={() => loadMessages(conv.id)}
-              className={`group flex items-center justify-between px-3 py-2 rounded-md cursor-pointer transition-all ${activeConversation === conv.id ? 'bg-slate-800/60 text-slate-100' : 'text-slate-400 hover:bg-slate-800/30 hover:text-slate-300'}`}>
+              className={`group flex items-center justify-between px-3 py-2 rounded-md cursor-pointer transition-all ${activeConversation === conv.id ? 'bg-slate-800/60 text-slate-100 conv-active' : 'text-slate-400 hover:bg-slate-800/30 hover:text-slate-300'}`}>
               <span className="text-xs truncate font-medium">{conv.title || 'Conversa nova'}</span>
               <button onClick={(e) => confirmDeleteConversation(conv.id, e)} className="opacity-0 group-hover:opacity-100 p-1 text-slate-600 hover:text-red-400 transition-all">
                 <IconTrash />
@@ -423,7 +425,7 @@ const ChatContainer = () => {
         {/* AI Config Header / Toolbar */}
         <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800/40 bg-[#0B1120]/80 backdrop-blur-sm z-10">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#2DD4BF] animate-pulse"></span>
+            <span className="w-2 h-2 rounded-full bg-[#2DD4BF] status-dot"></span>
             <span className="text-xs font-medium text-slate-300">Sessão Segura</span>
           </div>
           <div className="flex items-center gap-4">
@@ -455,7 +457,7 @@ const ChatContainer = () => {
           {/* ── Empty State with Suggestion Cards ────────────────────── */}
           {messages.length === 0 && !loading && (
             <div className="h-full flex flex-col items-center justify-center text-center px-6">
-              <div className="mb-2 p-3 rounded-2xl bg-[#818CF8]/5 border border-[#818CF8]/10">
+              <div className="mb-2 p-3 rounded-2xl bg-[#818CF8]/5 border border-[#818CF8]/10 empty-icon-float">
                 <IconScale />
               </div>
               <h2 className="text-slate-200 font-semibold text-lg mt-4 tracking-tight">Consultoria Contábil IA</h2>
@@ -468,14 +470,15 @@ const ChatContainer = () => {
                   <button
                     key={i}
                     onClick={() => sendMessage(s.text)}
-                    className="group relative text-left px-4 py-3.5 rounded-xl
+                    className="suggestion-card-animate group relative text-left px-4 py-3.5 rounded-xl
                       bg-slate-900/40 border border-slate-800/50
                       hover:bg-[#818CF8]/5 hover:border-[#818CF8]/25
                       hover:shadow-[0_0_20px_rgba(129,140,248,0.06)]
+                      hover:-translate-y-0.5
                       transition-all duration-300 backdrop-blur-sm"
                   >
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
+                      <div className="mt-0.5 flex-shrink-0 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300">
                         <SuggestionIcon type={s.icon} />
                       </div>
                       <span className="text-xs text-slate-400 group-hover:text-slate-200 leading-relaxed transition-colors">
@@ -490,7 +493,7 @@ const ChatContainer = () => {
 
           {/* ── Message Bubbles ───────────────────────────────────────── */}
           {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end msg-animate-user' : 'justify-start msg-animate-ai'}`}>
               <div className={msg.role === 'user' ? 'chat-bubble-user max-w-[80%]' : 'chat-bubble-ai max-w-[90%]'}>
                 <div className="flex items-center gap-2 mb-1.5 opacity-50">
                   <span className="text-[10px] font-mono font-bold uppercase">{msg.role === 'user' ? 'Você' : 'Copilot'}</span>
