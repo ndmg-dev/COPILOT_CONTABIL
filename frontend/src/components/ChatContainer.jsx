@@ -456,32 +456,79 @@ const ChatContainer = () => {
 
           {/* ── Empty State with Suggestion Cards ────────────────────── */}
           {messages.length === 0 && !loading && (
-            <div className="h-full flex flex-col items-center justify-center text-center px-6">
-              <div className="mb-2 p-3 rounded-2xl bg-[#818CF8]/5 border border-[#818CF8]/10 empty-icon-float">
-                <IconScale />
+            <div className="h-full flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
+              
+              {/* Ambient Particles */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="ambient-particle" style={{ top: '15%', left: '12%', animationDelay: '0s' }} />
+                <div className="ambient-particle" style={{ top: '70%', left: '85%', animationDelay: '1.5s' }} />
+                <div className="ambient-particle" style={{ top: '25%', right: '18%', animationDelay: '3s' }} />
+                <div className="ambient-particle" style={{ bottom: '20%', left: '25%', animationDelay: '4.5s' }} />
+                <div className="ambient-particle accent" style={{ top: '50%', right: '10%', animationDelay: '2s' }} />
+                <div className="ambient-particle accent" style={{ top: '10%', left: '60%', animationDelay: '5s' }} />
               </div>
-              <h2 className="text-slate-200 font-semibold text-lg mt-4 tracking-tight">Consultoria Contábil IA</h2>
-              <p className="text-slate-500 text-xs mt-1.5 max-w-sm font-mono leading-relaxed">
-                Respostas fundamentadas em CPC, NBC, RFB e CLT. Selecione um tópico abaixo ou digite sua pergunta.
+
+              {/* Radial Glow Behind Icon */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] w-[340px] h-[340px] rounded-full bg-[#818CF8]/[0.03] blur-[80px] pointer-events-none" />
+
+              {/* Icon with Orbital Rings */}
+              <div className="relative mb-4 empty-icon-float">
+                <div className="orbit-ring orbit-ring-1" />
+                <div className="orbit-ring orbit-ring-2" />
+                <div className="p-4 rounded-2xl bg-[#818CF8]/[0.07] border border-[#818CF8]/15 relative z-10 backdrop-blur-sm">
+                  <IconScale />
+                </div>
+              </div>
+
+              {/* Gradient Title */}
+              <h2 className="text-xl font-bold mt-3 tracking-tight gradient-title">
+                Consultoria Contábil IA
+              </h2>
+
+              {/* Subtitle with typing line */}
+              <p className="text-slate-500 text-xs mt-2 max-w-md font-mono leading-relaxed">
+                Respostas fundamentadas em CPC, NBC, RFB e CLT.
+                <br />
+                <span className="text-slate-600">Selecione um tópico abaixo ou digite sua pergunta.</span>
               </p>
 
-              <div className="grid grid-cols-2 gap-3 mt-8 w-full max-w-lg">
+              {/* Agent Status Pills */}
+              <div className="flex items-center gap-2 mt-5">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#2DD4BF]/[0.06] border border-[#2DD4BF]/15 text-[10px] font-mono text-[#2DD4BF]/70">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2DD4BF] status-dot" /> Pesquisador Web
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#818CF8]/[0.06] border border-[#818CF8]/15 text-[10px] font-mono text-[#818CF8]/70">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#818CF8] status-dot" /> Calculista
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#F59E0B]/[0.06] border border-[#F59E0B]/15 text-[10px] font-mono text-[#F59E0B]/70">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] status-dot" /> RAG Legal
+                </span>
+              </div>
+
+              {/* Gradient Divider */}
+              <div className="w-48 h-px mt-7 mb-6 bg-gradient-to-r from-transparent via-[#818CF8]/30 to-transparent" />
+
+              {/* Suggestion Cards */}
+              <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
                 {SUGGESTIONS.map((s, i) => (
                   <button
                     key={i}
                     onClick={() => sendMessage(s.text)}
                     className="suggestion-card-animate group relative text-left px-4 py-3.5 rounded-xl
                       bg-slate-900/40 border border-slate-800/50
-                      hover:bg-[#818CF8]/5 hover:border-[#818CF8]/25
-                      hover:shadow-[0_0_20px_rgba(129,140,248,0.06)]
-                      hover:-translate-y-0.5
-                      transition-all duration-300 backdrop-blur-sm"
+                      hover:border-[#818CF8]/30
+                      hover:shadow-[0_0_25px_rgba(129,140,248,0.08)]
+                      hover:-translate-y-1
+                      transition-all duration-300 backdrop-blur-sm
+                      overflow-hidden"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="mt-0.5 flex-shrink-0 opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300">
+                    {/* Hover Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#818CF8]/0 via-[#818CF8]/0 to-[#2DD4BF]/0 group-hover:from-[#818CF8]/[0.04] group-hover:via-transparent group-hover:to-[#2DD4BF]/[0.03] transition-all duration-500 rounded-xl" />
+                    <div className="relative flex items-start gap-3">
+                      <div className="mt-0.5 flex-shrink-0 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300">
                         <SuggestionIcon type={s.icon} />
                       </div>
-                      <span className="text-xs text-slate-400 group-hover:text-slate-200 leading-relaxed transition-colors">
+                      <span className="text-xs text-slate-400 group-hover:text-slate-200 leading-relaxed transition-colors duration-300">
                         {s.text}
                       </span>
                     </div>

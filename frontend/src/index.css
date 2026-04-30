@@ -344,6 +344,83 @@
   animation: iconFloat 3.5s ease-in-out infinite;
 }
 
+/* ─── Gradient Animated Title ───────────────────────────────────────────── */
+.gradient-title {
+  background: linear-gradient(135deg, #E0E7FF, #818CF8, #2DD4BF, #818CF8, #E0E7FF);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 6s ease-in-out infinite;
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* ─── Orbital Rings ─────────────────────────────────────────────────────── */
+.orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  pointer-events: none;
+}
+.orbit-ring-1 {
+  width: 90px; height: 90px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-color: rgba(129, 140, 248, 0.12);
+  animation: orbitSpin 12s linear infinite;
+}
+.orbit-ring-1::after {
+  content: '';
+  position: absolute;
+  top: -2px; left: 50%;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #818CF8;
+  box-shadow: 0 0 8px rgba(129, 140, 248, 0.6);
+}
+.orbit-ring-2 {
+  width: 120px; height: 120px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-color: rgba(45, 212, 191, 0.08);
+  animation: orbitSpin 18s linear infinite reverse;
+}
+.orbit-ring-2::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; right: 25%;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: #2DD4BF;
+  box-shadow: 0 0 6px rgba(45, 212, 191, 0.5);
+}
+@keyframes orbitSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ─── Ambient Particles ─────────────────────────────────────────────────── */
+.ambient-particle {
+  position: absolute;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: rgba(129, 140, 248, 0.25);
+  animation: particleDrift 8s ease-in-out infinite;
+}
+.ambient-particle.accent {
+  background: rgba(45, 212, 191, 0.2);
+  width: 2px; height: 2px;
+}
+@keyframes particleDrift {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(1); }
+  20%      { opacity: 1; }
+  80%      { opacity: 1; }
+  50%      { transform: translateY(-30px) scale(1.5); }
+}
+
 /* ─── Sidebar Nav Item Hover ────────────────────────────────────────────── */
 .sidebar-nav-item {
   position: relative;
