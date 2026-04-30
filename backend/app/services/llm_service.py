@@ -199,8 +199,8 @@ class LLMService:
             if context:
                 system_content += "\n\nUse o contexto abaixo para fundamentar sua resposta. Se as informações necessárias não estiverem no contexto, use seu conhecimento técnico, mas priorize as fontes citadas.\n" + context
 
-            # 3. Build message list
-            messages = [SystemMessage(content=system_content)]
+            # 3. Build message list (without SystemMessage, which goes to state_modifier)
+            messages = []
 
             # Add conversation history
             if conversation_history:
@@ -216,10 +216,21 @@ class LLMService:
             if not conversation_history or conversation_history[-1].get("content") != message:
                 messages.append(HumanMessage(content=message))
 
-            # Invoke the LLM
-            result = await self._llm.ainvoke(messages)
+            # 4. Invoke the LLM via LangGraph ReAct Agent
+            from langgraph.prebuilt import create_react_agent
+            from langchain_community.tools import DuckDuckGoSearchRun
 
-            response_text = result.content
+            search_tool = DuckDuckGoSearchRun(
+                name="pesquisa_web_contabil",
+                description="Pesquisa na internet por notícias, leis, alíquotas atualizadas e informações contábeis/fiscais recentes do Brasil. Use SEMPRE que o usuário perguntar sobre leis recentes ou quando precisar de dados externos atualizados."
+            )
+
+            tools = [search_tool]
+            agent_executor = create_react_agent(self._llm, tools, state_modifier=system_content)
+
+            result = await agent_executor.ainvoke({"messages": messages})
+
+            response_text = result["messages"][-1].content
             sources = self._extract_sources(response_text)
 
             return {

@@ -20,4 +20,5 @@ python-docx
 tabulate
 langchain-text-splitters
 apscheduler
-pyyaml
+pyyamlduckduckgo-search
+langgraph
